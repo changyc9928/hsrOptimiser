@@ -1,0 +1,258 @@
+set-bonus:
+  101: # Passerby of Wandering Cloud
+    2:
+      - stat: OTG_HEAL_BOOST
+        value: 10
+
+  102: # Musketeer of Wild Wheat
+    2:
+      - stat: ATK_PERCENT
+        value: 12
+    4:
+      - stat: SPD_PERCENT
+        value: 6
+      - stat: BSC_ATK_DMG_BOOST
+        value: 10
+
+  103: # Knight of Purity Palace
+    2:
+      - stat: DEF_PERCENT
+        value: 15
+    4:
+      - stat: SHIELD_DMG_ABS
+        value: 20
+
+  104: # Hunter of Glacial Forest
+    2:
+      - stat: ICE_DMG_BOOST
+        value: 10
+
+  105: # Champion of Streetwise Boxing
+    2:
+      - stat: PHYSICAL_DMG_BOOST
+        value: 10
+
+  106: # Guard of Wuthering Snow
+    2:
+      - stat: DMG_RED
+        value: 8
+
+  107: # Firesmith of Lava-Forging
+    2:
+      - stat: FIRE_DMG_BOOST
+        value: 10
+    4:
+      - stat: SKL_DMG_BOOST
+        value: 12
+
+  108: # Genius of Brilliant Stars
+    2:
+      - stat: QUANTUM_DMG_BOOST
+        value: 10
+
+  109: # Band of Sizzling Thunder
+    2:
+      - stat: LIGHTNING_DMG_BOOST
+        value: 10
+
+  110: # Eagle of Twilight Line
+    2:
+      - stat: WIND_DMG_BOOST
+        value: 10
+
+  111: # Thief of Shooting Meteor
+    2:
+      - stat: BRK_EFF
+        value: 16
+    4:
+      - stat: BRK_EFF
+        value: 16
+
+  112: # Wastelander of Banditry Desert
+    2:
+      - stat: IMAGINARY_DMG_BOOST
+        value: 10
+
+  113: # Longevous Disciple
+    2:
+      - stat: HP_PERCENT
+        value: 12
+
+  114: # Messenger Traversing Hackerspace
+    2:
+      - stat: SPD_PERCENT
+        value: 6
+
+  115: # The Ashblazing Grand Duke
+    2:
+      - stat: FUP_ATK_DMG_BOOST
+        value: 20
+
+  116: # Prisoner in Deep Confinement
+    2:
+      - stat: ATK_PERCENT
+        value: 20
+
+  117: # Pioneer Diver of Dead Waters
+    4:
+      - stat: CRIT_RATE
+        value: 4
+
+  118: # Watchmaker, Master of Dream Machinations
+    2:
+      - stat: BRK_EFF
+        value: 16
+
+  119: # Iron Cavalry Against the Scourge
+    2:
+      - stat: BRK_EFF
+        value: 16
+    4:
+      - stat: BRK_DMG_DEF_IGN
+        value: 10
+        condition:
+          - stat: BRK_EFF
+            value: 150
+      - stat: SPR_BRK_DMG_DEF_IGN
+        value: 15
+        condition:
+          - stat: BRK_EFF
+            value: 250
+
+  120: # The Wind-Soaring Valorous
+    2:
+      - stat: ATK_PERCENT
+        value: 12
+    4:
+      - stat: CRIT_RATE
+        value: 6
+
+  301: # Space Sealing Station
+    2:
+      - stat: ATK_PERCENT
+        value: 12
+      - stat: ATK_PERCENT
+        value: 12
+        condition:
+          - stat: SPD
+            value: 120
+
+  302: # Fleet of the Ageless
+    2:
+      - stat: HP_PERCENT
+        value: 12
+
+  303: # Pan-Cosmic Commercial Enterprise
+    2:
+      - stat: EFF_HIT_RATE
+        value: 10
+
+  304: # Belobog of the Architects
+    2:
+      - stat: DEF_PERCENT
+        value: 15
+      - stat: DEF_PERCENT
+        value: 15
+        condition:
+          - stat: EFF_HIT_RATE
+            value: 50
+
+  305: # Celestial Differentiator
+    2:
+      - stat: CRIT_DMG
+        value: 16
+
+  306: # Inert Salsotto
+    2:
+      - stat: CRIT_RATE
+        value: 8
+      - stat: FUP_ATK_DMG_BOOST
+        value: 15
+        condition:
+          - stat: CRIT_RATE
+            value: 50
+      - stat: ULT_DMG_BOOST
+        value: 15
+        condition:
+          - stat: CRIT_RATE
+            value: 50
+
+  307: # Talia: Kingdom of Banditry
+    2:
+      - stat: BRK_EFF
+        value: 16
+      - stat: BRK_EFF
+        value: 20
+        condition:
+          - stat: SPD
+            value: 145
+
+  308: # Sprightly Vonwacq
+    2:
+      - stat: ENERGY_REG_RATE
+        value: 5
+
+  309: # Rutilant Arena
+    2:
+      - stat: CRIT_RATE
+        value: 8
+      - stat: BSC_ATK_DMG_BOOST
+        value: 20
+        condition:
+          - stat: CRIT_RATE
+            value: 70
+      - stat: SKL_DMG_BOOST
+        value: 20
+        condition:
+          - stat: CRIT_RATE
+            value: 70
+
+  310: # Broken Keel
+    2:
+      - stat: EFF_RES
+        value: 10
+
+  311: # Firmament Frontline: Glamoth
+    2:
+      - stat: ATK_PERCENT
+        value: 12
+      - stat: CMN_DMG_BOOST
+        value: 12
+        condition:
+          - stat: SPD
+            value: 135
+      - stat: CMN_DMG_BOOST
+        value: 18
+        condition:
+          - stat: SPD
+            value: 160
+
+  312: # Penacony, Land of the Dreams
+    2:
+      - stat: ENERGY_REG_RATE
+        value: 5
+
+  313: # Sigonia, the Unclaimed Desolation
+    2:
+      - stat: CRIT_RATE
+        value: 4
+
+  314: # Izumo Gensei and Takama Divine Realm
+    2:
+      - stat: ATK_PERCENT
+        value: 12
+
+  316: # Forge of the Kalpagni Lantern
+    2:
+      - stat: SPD_PERCENT
+        value: 6
+
+  317: # Lushaka, the Sunken Seas
+    2:
+      - stat: ENERGY_REG_RATE
+        value: 5
+
+  318: # The Wondrous BananAmusement Park
+    2:
+      - stat: CRIT_DMG
+        value: 16

@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: hsrOptimiser
+  config:
+    import:
+      - "classpath:set-bonus.yml"
+      - "classpath:conditional-set-bonus.yml"
+      - "classpath:formula.yml"
+
+server:
+  servlet:
+    session:
+      timeout: 3600
+
+project-yatta:
+  url: "https://sr.yatta.moe/api/v2/en/"
+  max-retries: 10
+  retry-interval-second: 3
+  ttl-days: 42 # duration of one HSR patch

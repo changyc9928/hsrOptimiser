@@ -1,0 +1,164 @@
+conditional-set-bonus:
+  104: # Hunter of Glacial Forest
+    4:
+      - stat: CRIT_DMG
+        value: 25
+        max-stack: 1
+        description: "After the wearer uses their Ultimate, their CRIT DMG increases by 25% for 2 turn(s)."
+
+  105: # Champion of Streetwise Boxing
+    4:
+      - stat: ATK_PERCENT
+        value: 5
+        max-stack: 5
+        description: "After the wearer attacks or is hit, their ATK increases by 5% for the rest of the battle. This effect can stack up to 5 time(s)."
+
+  107: # Firesmith of Lava-Forging
+    4:
+      - stat: FIRE_DMG_BOOST
+        value: 12
+        max-stack: 1
+        description: "After unleashing Ultimate, increases the wearer's Fire DMG by 12% for the next attack."
+
+  108: # Genius of Brilliant Stars
+    4:
+      - stat: DEF_IGN
+        value: 10
+        max-stack: 1
+        description: "When the wearer deals DMG to the target enemy, ignores 10% DEF. If the target enemy has Quantum Weakness, the wearer additionally ignores 10% DEF."
+      - stat: DEF_IGN
+        value: 10
+        max-stack: 1
+        description: "When the wearer deals DMG to the target enemy, ignores 10% DEF. If the target enemy has Quantum Weakness, the wearer additionally ignores 10% DEF."
+
+  109: # Band of Sizzling Thunder
+    4:
+      - stat: ATK_PERCENT
+        value: 20
+        max-stack: 1
+        description: "When the wearer uses their Skill, increases the wearer's ATK by 20% for 1 turn(s)."
+
+  112: # Wastelander of Banditry Desert
+    4:
+      - stat: CRIT_RATE
+        value: 10
+        max-stack: 1
+        description: "When attacking debuffed enemies, the wearer's CRIT Rate increases by 10%, and their CRIT DMG increases by 20% against Imprisoned enemies."
+      - stat: CRIT_DMG
+        value: 20
+        max-stack: 1
+        description: "When attacking debuffed enemies, the wearer's CRIT Rate increases by 10%, and their CRIT DMG increases by 20% against Imprisoned enemies."
+
+  113: # Longevous Disciple
+    4:
+      - stat: CRIT_RATE
+        value: 8
+        max-stack: 2
+        description: "When the wearer is hit or has their HP consumed by an ally or themselves, their CRIT Rate increases by 8% for 2 turn(s) and up to 2 stacks."
+
+  115: # The Ashblazing Grand Duke
+    4:
+      - stat: ATK_PERCENT
+        value: 6
+        max-stack: 8
+        description: "When the wearer uses a follow-up attack, increases the wearer's ATK by 6% for every time the follow-up attack deals DMG. This effect can stack up to 8 time(s) and lasts for 3 turn(s). This effect is removed the next time the wearer uses a follow-up attack."
+
+  116: # Prisoner in Deep Confinement
+    4:
+      - stat: DEF_IGN
+        value: 6
+        max-stack: 3
+        description: "For every DoT the target enemy is afflicted with, the wearer will ignore 6% of its DEF when dealing DMG to it. This effect is valid for a max of 3 DoTs."
+
+  117: # Pioneer Diver of Dead Waters
+    2:
+      - stat: CMN_DMG_BOOST
+        value: 12
+        max-stack: 1
+        description: "Increases DMG dealt to enemies with debuffs by 12%."
+    4:
+      - stat: CRIT_DMG
+        value: 8
+        max-stack: 2
+        description: "The wearer deals 8%/12% increased CRIT DMG to enemies with at least 2/3 debuffs. After the wearer inflicts a debuff on enemy targets, the aforementioned effects increase by 100%, lasting for 1 turn(s)."
+      - stat: CRIT_DMG
+        value: 4
+        max-stack: 2
+        description: "The wearer deals 8%/12% increased CRIT DMG to enemies with at least 2/3 debuffs. After the wearer inflicts a debuff on enemy targets, the aforementioned effects increase by 100%, lasting for 1 turn(s)."
+
+  120: # The Wind-Soaring Valorous
+    4:
+      - stat: ULT_DMG_BOOST
+        value: 36
+        max-stack: 1
+        description: "After the wearer uses a follow-up attack, increases DMG dealt by Ultimate by 36%, lasting for 1 turn(s)."
+
+#  303: # Pan-Cosmic Commercial Enterprise
+#    2:
+#      - stat: ATK_PERCENT
+#        value: 25
+#        max-stack: 1
+#        description: "Meanwhile, the wearer's ATK increases by an amount that is equal to 25% of the current Effect Hit Rate, up to a maximum of 25%."
+
+  305: # Celestial Differentiator
+    2:
+      - stat: CRIT_RATE
+        value: 60
+        max-stack: 1
+        description: "When the wearer's current CRIT DMG reaches 120% or higher, after entering battle, the wearer's CRIT Rate increases by 60% until the end of their first attack."
+        condition:
+          - stat: CRIT_DMG
+            value: 120
+
+#  312: # Penacony, Land of the Dreams
+#    2:
+#      - stat: CMN_DMG_BOOST
+#        value: 10
+#        max-stack: 1
+#        description: "Increases DMG by 10.00% for all other allies that are of the same Type as the wearer."
+
+  313: # Sigonia, the Unclaimed Desolation
+    2:
+      - stat: CRIT_DMG
+        value: 4
+        max-stack: 10
+        description: "When an enemy target gets defeated, the wearer's CRIT DMG increases by 4.00%, stacking up to 10 time(s)."
+
+  314: # Izumo Gensei and Takama Divine Realm
+    2:
+      - stat: CRIT_RATE
+        value: 12
+        max-stack: 1
+        description: "When entering battle, if at least one teammate follows the same Path as the wearer, then the wearer's CRIT Rate increases by 12.00%."
+
+  315: # Duran, Dynasty of Running Wolves
+    2:
+      - stat: FUP_ATK_DMG_BOOST
+        value: 5
+        max-stack: 5
+        description: "When an ally uses a follow-up attack, the wearer gains 1 stack of Merit, stacking up to 5 time(s). Each stack of Merit increases the DMG dealt by the wearer's follow-up attacks by 5.00%. When there are 5 stacks, additionally increases the wearer's CRIT DMG by 25.00%."
+      - stat: CRIT_DMG
+        value: 25
+        max-stack: 1
+        description: "When an ally uses a follow-up attack, the wearer gains 1 stack of Merit, stacking up to 5 time(s). Each stack of Merit increases the DMG dealt by the wearer's follow-up attacks by 5.00%. When there are 5 stacks, additionally increases the wearer's CRIT DMG by 25.00%."
+
+  316: # Forge of the Kalpagni Lantern
+    2:
+      - stat: BRK_EFF
+        value: 40
+        max-stack: 1
+        description: "When the wearer hits an enemy target that has Fire Weakness, the wearer's Break Effect increases by 40.00%, lasting for 1 turn(s)."
+
+#  317: # Lushaka, the Sunken Seas
+#    2:
+#      - stat: ATK_PERCENT
+#        value: 12
+#        max-stack: 1
+#        description: "If the wearer is not the first character in the team lineup, then increases the ATK of the first character in the team lineup by 12.00%."
+
+  318: # The Wondrous BananAmusement Park
+    2:
+      - stat: CRIT_DMG
+        value: 32
+        max-stack: 1
+        description: "When a target summoned by the wearer is on the field, CRIT DMG additionally increases by 32.00%."
