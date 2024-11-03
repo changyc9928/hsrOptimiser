@@ -17,3 +17,154 @@ project-yatta:
   max-retries: 10
   retry-interval-second: 3
   ttl-days: 42 # duration of one HSR patch
+
+relic-stat-mapper:
+  # stats appear in relics
+  HP: "HP_FLAT"
+  HP_: "HP_PERCENT"
+  ATK: "ATK_FLAT"
+  ATK_: "ATK_PERCENT"
+  DEF: "DEF_FLAT"
+  DEF_: "DEF_PERCENT"
+  "[Effect Hit Rate]": "EFFECT_HIT_RATE"
+  "[Effect Hit Rate_]": "EFFECT_HIT_RATE"
+  "[Outgoing Healing Boost]": "OUTGOING_HEALING_BOOST"
+  "[CRIT Rate]": "CRIT_RATE"
+  "[CRIT Rate_]": "CRIT_RATE"
+  "[CRIT DMG]": "CRIT_DMG"
+  "[CRIT DMG_]": "CRIT_DMG"
+  "[SPD]": "SPD_FLAT"
+  "[Physical DMG Boost]": "PHYSICAL_DMG_BOOST"
+  "[Fire DMG Boost]": "FIRE_DMG_BOOST"
+  "[Ice DMG Boost]": "ICE_DMG_BOOST"
+  "[Wind DMG Boost]": "WIND_DMG_BOOST"
+  "[Lightning DMG Boost]": "LIGHTNING_DMG_BOOST"
+  "[Quantum DMG Boost]": "QUANTUM_DMG_BOOST"
+  "[Imaginary DMG Boost]": "IMAGINARY_DMG_BOOST"
+  "[Break Effect]": "BREAK_EFFECT"
+  "[Break Effect_]": "BREAK_EFFECT"
+  "[Energy Regeneration Rate]": "ENERGY_REGENERATION_RATE"
+  "[Effect RES_]": "EFFECT_RES"
+  # other stats
+  SPD_: "SPD_PERCENT"
+  Common DMG Boost: "COMMON_DMG_BOOST"
+  Basic Attack DMG Boost: "BASIC_ATTACK_DMG_BOOST"
+  Skill DMG Boost: "SKILL_DMG_BOOST"
+  Ultimate DMG Boost: "ULTIMATE_DMG_BOOST"
+  Follow-up ATK DMG Boost: "FOLLOW_UP_ATTACK_DMG_BOOST"
+  Shield DMG Absorption: "SHIELD_DMG_ABSORPTION"
+  DMG Reduction: "DMG_REDUCTION"
+  DEF Reduction: "DEF_REDUCTION"
+  DEF Ignore: "DEF_IGNORE"
+  Break DMG DEF Ignore: "BREAK_DMG_DEF_IGNORE"
+  Super Break DMG DEF Ignore: "SUPER_BREAK_DAMAGE_DEF_IGNORE"
+  Extra DMG: "EXTRA_DMG"
+  RES Penalty: "RES_PENALTY"
+  Elemental Vulnerability: "ELEMENTAL_VULNERABILITY"
+  All Type Vulnerability: "ALL_TYPE_VULNERABILITY"
+  DoT Vulnerability: "DOT_VULNERABILITY"
+  Weaken: "WEAKEN"
+
+trace-title-mapper:
+  "[HP Boost]": "HP_PERCENT"
+  "[ATK Boost]": "ATK_PERCENT"
+  "[DEF Boost]": "DEF_PERCENT"
+  "[SPD Boost]": "SPD_FLAT"
+  "[CRIT Rate Boost]": "CRIT_RATE"
+  "[CRIT DMG Boost]": "CRIT_DMG"
+  "[Effect RES Boost]": "EFFECT_RES"
+  "[Break Boost]": "BREAK_EFFECT"
+  "[Break Enhance]": "BREAK_EFFECT"
+  "[Energy Regeneration Boost]": "ENERGY_REGENERATION_RATE"
+  "[Effect Hit Rate Boost]": "EFFECT_HIT_RATE"
+  "[DMG Boost]": "COMMON_DMG_BOOST"
+  "[DMG Boost: Ice]": "ICE_DMG_BOOST"
+  "[DMG Boost: Fire]": "FIRE_DMG_BOOST"
+  "[DMG Boost Fire]": "FIRE_DMG_BOOST"
+  "[DMG Boost: Wind]": "WIND_DMG_BOOST"
+  "[DMG Boost: Lightning]": "LIGHTNING_DMG_BOOST"
+  "[DMG Boost: Imaginary]": "IMAGINARY_DMG_BOOST"
+  "[DMG Boost: Quantum]": "QUANTUM_DMG_BOOST"
+  "[DMG Boost: Physical]": "PHYSICAL_DMG_BOOST"
+
+rarity-stats:
+  5:
+    SPD_FLAT: { base: 4.032, multiplier: 1.4 }
+    HP_FLAT: { base: 112.896, multiplier: 39.5136 }
+    ATK_FLAT: { base: 56.448, multiplier: 19.7568 }
+    HP_PERCENT: { base: 6.9120, multiplier: 2.4192 }
+    ATK_PERCENT: { base: 6.9120, multiplier: 2.4192 }
+    EFFECT_HIT_RATE: { base: 6.9120, multiplier: 2.4192 }
+    DEF_PERCENT: { base: 8.64, multiplier: 3.024 }
+    BREAK_EFFECT: { base: 10.3680, multiplier: 3.6277 }
+    ENERGY_REGENERATION_RATE: { base: 3.1104, multiplier: 1.0886 }
+    OUTGOING_HEALING_BOOST: { base: 5.5296, multiplier: 1.9354 }
+    PHYSICAL_DMG_BOOST: { base: 6.2208, multiplier: 2.1773 }
+    FIRE_DMG_BOOST: { base: 6.2208, multiplier: 2.1773 }
+    ICE_DMG_BOOST: { base: 6.2208, multiplier: 2.1773 }
+    WIND_DMG_BOOST: { base: 6.2208, multiplier: 2.1773 }
+    LIGHTNING_DMG_BOOST: { base: 6.2208, multiplier: 2.1773 }
+    QUANTUM_DMG_BOOST: { base: 6.2208, multiplier: 2.1773 }
+    IMAGINARY_DMG_BOOST: { base: 6.2208, multiplier: 2.1773 }
+    CRIT_RATE: { base: 5.184, multiplier: 1.8144 }
+    CRIT_DMG: { base: 10.368, multiplier: 3.6288 }
+  4:
+    SPD_FLAT: { base: 3.2256, multiplier: 1.1 }
+    HP_FLAT: { base: 90.3168, multiplier: 31.61088 }
+    ATK_FLAT: { base: 45.1584, multiplier: 15.80544 }
+    HP_PERCENT: { base: 5.5296, multiplier: 1.9354 }
+    ATK_PERCENT: { base: 5.5296, multiplier: 1.9354 }
+    EFFECT_HIT_RATE: { base: 5.5296, multiplier: 1.9354 }
+    DEF_PERCENT: { base: 6.912, multiplier: 2.4192 }
+    BREAK_EFFECT: { base: 8.2944, multiplier: 2.9030 }
+    CRIT_DMG: { base: 8.2944, multiplier: 2.9030 }
+    ENERGY_REGENERATION_RATE: { base: 2.4883, multiplier: 0.8709 }
+    OUTGOING_HEALING_BOOST: { base: 4.4237, multiplier: 1.5483 }
+    PHYSICAL_DMG_BOOST: { base: 4.9766, multiplier: 1.7418 }
+    FIRE_DMG_BOOST: { base: 4.9766, multiplier: 1.7418 }
+    ICE_DMG_BOOST: { base: 4.9766, multiplier: 1.7418 }
+    WIND_DMG_BOOST: { base: 4.9766, multiplier: 1.7418 }
+    LIGHTNING_DMG_BOOST: { base: 4.9766, multiplier: 1.7418 }
+    QUANTUM_DMG_BOOST: { base: 4.9766, multiplier: 1.7418 }
+    IMAGINARY_DMG_BOOST: { base: 4.9766, multiplier: 1.7418 }
+    CRIT_RATE: { base: 4.1472, multiplier: 1.4515 }
+  3:
+    SPD_FLAT: { base: 2.4192, multiplier: 1 }
+    HP_FLAT: { base: 67.7376, multiplier: 23.70816 }
+    ATK_FLAT: { base: 33.8688, multiplier: 11.85408 }
+    HP_PERCENT: { base: 4.1472, multiplier: 1.4515 }
+    ATK_PERCENT: { base: 4.1472, multiplier: 1.4515 }
+    EFFECT_HIT_RATE: { base: 4.1472, multiplier: 1.4515 }
+    DEF_PERCENT: { base: 5.184, multiplier: 1.8144 }
+    BREAK_EFFECT: { base: 6.2208, multiplier: 2.1773 }
+    CRIT_DMG: { base: 6.2208, multiplier: 2.1773 }
+    ENERGY_REGENERATION_RATE: { base: 1.8662, multiplier: 0.6532 }
+    OUTGOING_HEALING_BOOST: { base: 3.3178, multiplier: 1.1612 }
+    PHYSICAL_DMG_BOOST: { base: 3.7325, multiplier: 1.3064 }
+    FIRE_DMG_BOOST: { base: 3.7325, multiplier: 1.3064 }
+    ICE_DMG_BOOST: { base: 3.7325, multiplier: 1.3064 }
+    WIND_DMG_BOOST: { base: 3.7325, multiplier: 1.3064 }
+    LIGHTNING_DMG_BOOST: { base: 3.7325, multiplier: 1.3064 }
+    QUANTUM_DMG_BOOST: { base: 3.7325, multiplier: 1.3064 }
+    IMAGINARY_DMG_BOOST: { base: 3.7325, multiplier: 1.3064 }
+    CRIT_RATE: { base: 3.1104, multiplier: 1.0886 }
+  2:
+    SPD_FLAT: { base: 1.6128, multiplier: 1 }
+    HP_FLAT: { base: 45.1584, multiplier: 15.80544 }
+    ATK_FLAT: { base: 22.5792, multiplier: 7.90272 }
+    HP_PERCENT: { base: 2.7648, multiplier: 0.9677 }
+    ATK_PERCENT: { base: 2.7648, multiplier: 0.9677 }
+    EFFECT_HIT_RATE: { base: 2.7648, multiplier: 0.9677 }
+    DEF_PERCENT: { base: 3.456, multiplier: 1.2096 }
+    BREAK_EFFECT: { base: 4.1472, multiplier: 1.4515 }
+    CRIT_DMG: { base: 4.1472, multiplier: 1.4515 }
+    ENERGY_REGENERATION_RATE: { base: 1.2442, multiplier: 0.4355 }
+    OUTGOING_HEALING_BOOST: { base: 2.2118, multiplier: 0.7741 }
+    PHYSICAL_DMG_BOOST: { base: 2.4883, multiplier: 0.8709 }
+    FIRE_DMG_BOOST: { base: 2.4883, multiplier: 0.8709 }
+    ICE_DMG_BOOST: { base: 2.4883, multiplier: 0.8709 }
+    WIND_DMG_BOOST: { base: 2.4883, multiplier: 0.8709 }
+    LIGHTNING_DMG_BOOST: { base: 2.4883, multiplier: 0.8709 }
+    QUANTUM_DMG_BOOST: { base: 2.4883, multiplier: 0.8709 }
+    IMAGINARY_DMG_BOOST: { base: 2.4883, multiplier: 0.8709 }
+    CRIT_RATE: { base: 2.0736, multiplier: 0.7258 }

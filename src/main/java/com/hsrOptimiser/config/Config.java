@@ -1,5 +1,8 @@
 package com.hsrOptimiser.config;
 
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,10 +12,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 @Configuration
 public class Config {
@@ -25,8 +24,8 @@ public class Config {
     @Bean
     public WebClient projectYattaWebClient() {
         return WebClient.builder()
-                .baseUrl(url)
-                .build();
+            .baseUrl(url)
+            .build();
     }
 
     @Bean
@@ -35,7 +34,8 @@ public class Config {
         template.setConnectionFactory(connectionFactory);
 
         // Configure JSON serializer
-        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
+        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(
+            Object.class);
         template.setDefaultSerializer(serializer);
 
         return template;
@@ -47,12 +47,14 @@ public class Config {
 
         // Specific cache configurations with different TTLs
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
-        cacheConfigurations.put("characterCache", config.entryTtl(Duration.ofDays(projectYattaCacheTTL)));
-        cacheConfigurations.put("lightConeCache", config.entryTtl(Duration.ofDays(projectYattaCacheTTL)));
+        cacheConfigurations.put("characterCache",
+            config.entryTtl(Duration.ofDays(projectYattaCacheTTL)));
+        cacheConfigurations.put("lightConeCache",
+            config.entryTtl(Duration.ofDays(projectYattaCacheTTL)));
 
         return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(config)
-                .withInitialCacheConfigurations(cacheConfigurations)
-                .build();
+            .cacheDefaults(config)
+            .withInitialCacheConfigurations(cacheConfigurations)
+            .build();
     }
 }

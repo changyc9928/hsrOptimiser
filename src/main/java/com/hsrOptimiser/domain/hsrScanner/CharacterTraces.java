@@ -1,12 +1,12 @@
 package com.hsrOptimiser.domain.hsrScanner;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 @Data
 public class CharacterTraces implements Serializable {
+
     @JsonAlias("ability_1")
     boolean ability1;
     @JsonAlias("ability_2")

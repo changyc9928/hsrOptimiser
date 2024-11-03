@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class StatBonus {
+
     Stats stat;
     float value;
     StatBonusCondition condition;

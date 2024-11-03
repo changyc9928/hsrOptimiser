@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class PopulatedLightCone extends LightCone {
+
     float baseHp;
     float baseAtk;
     float baseDef;

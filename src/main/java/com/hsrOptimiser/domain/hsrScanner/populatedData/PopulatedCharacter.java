@@ -1,13 +1,12 @@
 package com.hsrOptimiser.domain.hsrScanner.populatedData;
 
 import com.hsrOptimiser.domain.hsrScanner.Character;
-import com.hsrOptimiser.domain.hsrScanner.Stats;
-import lombok.Data;
-
 import java.util.HashMap;
+import lombok.Data;
 
 @Data
 public class PopulatedCharacter extends Character {
+
     float baseHp;
     float baseAtk;
     float baseDef;
@@ -15,5 +14,5 @@ public class PopulatedCharacter extends Character {
     float baseAggro;
     float criticalChance;
     float criticalDamage;
-    HashMap<Stats, Float> statBonus;
+    HashMap<String, Float> statBonus;
 }

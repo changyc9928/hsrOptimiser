@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class ConditionalStatBonus {
+
     Stats stat;
     float value;
     int maxStack;

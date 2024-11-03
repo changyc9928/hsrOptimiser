@@ -1,11 +1,11 @@
 package com.hsrOptimiser.domain.hsrScanner;
 
-import lombok.Data;
-
 import java.io.Serializable;
+import lombok.Data;
 
 @Data
 public class Character implements Serializable {
+
     String id;
     String name;
     Path path;

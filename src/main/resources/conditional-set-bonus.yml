@@ -93,12 +93,12 @@ conditional-set-bonus:
         max-stack: 1
         description: "After the wearer uses a follow-up attack, increases DMG dealt by Ultimate by 36%, lasting for 1 turn(s)."
 
-#  303: # Pan-Cosmic Commercial Enterprise
-#    2:
-#      - stat: ATK_PERCENT
-#        value: 25
-#        max-stack: 1
-#        description: "Meanwhile, the wearer's ATK increases by an amount that is equal to 25% of the current Effect Hit Rate, up to a maximum of 25%."
+  #  303: # Pan-Cosmic Commercial Enterprise
+  #    2:
+  #      - stat: ATK_PERCENT
+  #        value: 25
+  #        max-stack: 1
+  #        description: "Meanwhile, the wearer's ATK increases by an amount that is equal to 25% of the current Effect Hit Rate, up to a maximum of 25%."
 
   305: # Celestial Differentiator
     2:
@@ -110,12 +110,12 @@ conditional-set-bonus:
           - stat: CRIT_DMG
             value: 120
 
-#  312: # Penacony, Land of the Dreams
-#    2:
-#      - stat: CMN_DMG_BOOST
-#        value: 10
-#        max-stack: 1
-#        description: "Increases DMG by 10.00% for all other allies that are of the same Type as the wearer."
+  #  312: # Penacony, Land of the Dreams
+  #    2:
+  #      - stat: CMN_DMG_BOOST
+  #        value: 10
+  #        max-stack: 1
+  #        description: "Increases DMG by 10.00% for all other allies that are of the same Type as the wearer."
 
   313: # Sigonia, the Unclaimed Desolation
     2:
@@ -149,12 +149,12 @@ conditional-set-bonus:
         max-stack: 1
         description: "When the wearer hits an enemy target that has Fire Weakness, the wearer's Break Effect increases by 40.00%, lasting for 1 turn(s)."
 
-#  317: # Lushaka, the Sunken Seas
-#    2:
-#      - stat: ATK_PERCENT
-#        value: 12
-#        max-stack: 1
-#        description: "If the wearer is not the first character in the team lineup, then increases the ATK of the first character in the team lineup by 12.00%."
+  #  317: # Lushaka, the Sunken Seas
+  #    2:
+  #      - stat: ATK_PERCENT
+  #        value: 12
+  #        max-stack: 1
+  #        description: "If the wearer is not the first character in the team lineup, then increases the ATK of the first character in the team lineup by 12.00%."
 
   318: # The Wondrous BananAmusement Park
     2:

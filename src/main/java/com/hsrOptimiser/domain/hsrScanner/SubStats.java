@@ -1,11 +1,14 @@
 package com.hsrOptimiser.domain.hsrScanner;
 
-import lombok.Data;
-
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.hsrOptimiser.utils.StatsMappingSerializer;
 import java.io.Serializable;
+import lombok.Data;
 
 @Data
 public class SubStats implements Serializable {
-    Stats key;
+
+    @JsonDeserialize(using = StatsMappingSerializer.class)
+    String key;
     float value;
 }

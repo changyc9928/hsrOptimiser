@@ -1,6 +1,7 @@
 package com.hsrOptimiser.client;
 
 import com.hsrOptimiser.domain.projectYatta.ProjectYattaResponse;
+import java.time.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
@@ -10,10 +11,9 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Flux;
 import reactor.util.retry.Retry;
 
-import java.time.Duration;
-
 @Component
 public class ProjectYattaClient {
+
     @Value("${project-yatta.max-retries}")
     int maxRetries;
     @Value("${project-yatta.retry-interval-second}")
@@ -34,17 +34,17 @@ public class ProjectYattaClient {
 
     private Flux<ProjectYattaResponse> fetchData(String uri) {
         return projectYattaWebClient.get()
-                .uri(uri)
-                .retrieve()
-                .bodyToFlux(ProjectYattaResponse.class)
-                .retryWhen(getRetryPolicy())
-                .onErrorResume(WebClientResponseException.class, this::handleError);
+            .uri(uri)
+            .retrieve()
+            .bodyToFlux(ProjectYattaResponse.class)
+            .retryWhen(getRetryPolicy())
+            .onErrorResume(WebClientResponseException.class, this::handleError);
     }
 
     private Retry getRetryPolicy() {
         return Retry.fixedDelay(maxRetries, Duration.ofSeconds(retryInterval))
-                .filter(throwable -> throwable instanceof WebClientResponseException &&
-                        ((WebClientResponseException) throwable).getStatusCode().value() == 503);
+            .filter(throwable -> throwable instanceof WebClientResponseException &&
+                ((WebClientResponseException) throwable).getStatusCode().value() == 503);
     }
 
     private Flux<ProjectYattaResponse> handleError(WebClientResponseException e) {

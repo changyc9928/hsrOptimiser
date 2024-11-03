@@ -1,293 +1,223 @@
-base-damage-common: "(${formula.base-stat.ATK}) + Extra_DMG"
-crit-damage: "1 + (Crit_Rate) / 100 * (${formula.base-stat.CRIT_DMG}) / 100"
-weaken-multiplier: "1 - Weaken"
-target-defence-multiplier: "(Level_Attacker + 20) / ((Level_Target + 20) * (1 - Def_Reduction - Def_Ignore) + Level_Attacker + 20)"
-target-resistance-multiplier: "1 - (Res_Target - Res_Penalty_Attacker)"
-target-vulnerability-multiplier: "1 + Elemental_Vulnerability + All_Type_Vulnerability + DoT_Vulnerability"
-target-formula: "(${weaken-multiplier}) * (${target-defence-multiplier}) * (${target-resistance-multiplier}}) * (${target-vulnerability-multiplier}}) * DMG_Mitigation * Broken"
+crit-damage: "1 + (Crit_Rate) / 100 * (${formula.base-stat.CRIT DMG}) / 100"
+weaken-multiplier: "1 - WEAKEN"
+target-defence-multiplier: "(Character_Level + 20) / ((Enemy_Level + 20) * (1 - DEF_REDUCTION - DEF_IGNORE) + Character_Level + 20)"
+target-resistance-multiplier: "1 - (Enemy_Resistance - RES_PENALTY)"
+target-vulnerability-multiplier: "1 + ELEMENTAL_VULNERABILITY + ALL_TYPE_VULNERABILITY + DOT_VULNERABILITY"
+damage-on-target-formula-common: "(${target-defence-multiplier}) * (${target-resistance-multiplier}}) * (${target-vulnerability-multiplier}}) * Broken"
+regular-damage-formula-common: "(${crit-damage}) * (${weaken-multiplier}) * ${damage-on-target-formula-common} * DMG_Mitigation"
+break-dmg-formula-common: "(1 + BREAK_EFFECT) * ${damage-on-target-formula-common}"
+super-break-dmg-formula: "Level_Multiplier * (Toughness_Reduction / 10) * (1 + BREAK_EFFECT) * ${damage-on-target-formula-common}"
+
+break-base-damage:
+  PHYSICAL: "2 * Level_Multiplier * Max_Toughness_Multiplier"
+  FIRE: "2 * Level_Multiplier * Max_Toughness_Multiplier"
+  ICE: "1 * Level_Multiplier * Max_Toughness_Multiplier"
+  LIGHTNING: "1 * Level_Multiplier * Max_Toughness_Multiplier"
+  WIND: "1.5 * Level_Multiplier * Max_Toughness_Multiplier"
+  QUANTUM: "0.5 * Level_Multiplier * Max_Toughness_Multiplier"
+  IMAGINARY: "0.5 * Level_Multiplier * Max_Toughness_Multiplier"
+
+dot-base-damage:
+  PHYSICAL: "Bleed_Multiplier * Max_HP_Target"
+  FIRE: "1 * Level_Multiplier"
+  ICE: "1 * Level_Multiplier"
+  LIGHTNING: "2 * Level_Multiplier"
+  WIND: "1 * Stack_Count * Level_Multiplier"
+  QUANTUM: "0.6 * Stack_Count * Level_Multiplier * Max_Toughness_Multiplier"
+  IMAGINARY: "0"
+
+dropdown:
+  CRITICAL_HIT:
+    title: "Critical hit"
+    stats:
+      - "Crit_Rate"
+    scale:
+      "no": "0"
+      "average": "${formula.base-stat.CRIT Rate}"
+      "yes": "100"
+  TOUGHNESS_BREAK:
+    title: "Enemy toughness broken"
+    stats:
+      - "Broken"
+    scale:
+      "no": "0.9"
+      "yes": "1"
 
 formula:
   base-stat:
-    HP: "(Character_HP + LightCone_HP) * (1 + Percentage_HP_Bonus / 100) + Additive_HP_Bonus"
-    ATK: "(Character_ATK + LightCone_ATK) * (1 + Percentage_ATK_Bonus / 100) + Additive_ATK_Bonus"
-    DEF: "(Character_DEF + LightCone_DEF) * (1 + (Percentage_DEF_Bonus - Percentage_DEF_Reduction) / 100) + Additive_DEF_Bonus"
-    SPD: "Character_SPD * (1 + Percentage_SPD_Bonus / 100) + Additive_SPD_Bonus"
-    CRIT_RATE: "Character_Base_CRIT_Rate + CRIT_Rate"
-    CRIT_DMG: "Character_Base_CRIT_DMG + CRIT_DMG"
-    ENERGY_REGEN: "Energy_Regeneration_Rate"
-    EFFECT_HIT_RATE: "Effect_Hit_Rate"
-    EFFECT_RES: "Effect_RES"
-    BREAK_EFFECT: "Break_Effect"
-    OUTGOING_HEALING_BOOST: "Outgoing_Healing_Boost"
+    HP: "(Character_HP + LightCone_HP) * (1 + HP_PERCENT / 100) + HP_FLAT"
+    ATK: "(Character_ATK + LightCone_ATK) * (1 + ATK_PERCENT / 100) + ATK_FLAT"
+    DEF: "(Character_DEF + LightCone_DEF) * (1 + (DEF_PERCENT - DEF_REDUCTION) / 100) + DEF_FLAT"
+    SPD: "Character_SPD * (1 + SPD_PERCENT / 100) + SPD_FLAT"
+    CRIT Rate: "Character_Base_CRIT_Rate + CRIT_RATE"
+    CRIT DMG: "Character_Base_CRIT_DMG + CRIT_DMG"
+    Energy Regeneration Rate: "ENERGY_REGENERATION_RATE"
+    Effect Hit Rate: "EFFECT_HIT_RATE"
+    Effect RES: "EFFECT_RES"
+    Break Effect: "BREAK_EFFECT"
+    Outgoing Healing Boost: "OUTGOING_HEALING_BOOST"
 
   character:
     ACHERON:
+      skill-dmg-boost: "1 + (LIGHTNING_DMG_BOOST + COMMON_DMG_BOOST + SKILL_DMG_BOOST) / 100"
+      ult-dmg-boost: "1 + (LIGHTNING_DMG_BOOST + COMMON_DMG_BOOST + ULTIMATE_DMG_BOOST) / 100"
+      scale-mapping:
+        Basic_Attack_Ability_Multiplier:
+          key: "Character_Basic_Attack_Level"
+          scale:
+            "1": "50"
+            "2": "60"
+            "3": "70"
+            "4": "80"
+            "5": "90"
+            "6": "100"
+            "7": "110"
+            "8": "120"
+            "9": "130"
+        Skill_Main_Target_Ability_Multiplier:
+          key: "Character_Skill_Level"
+          scale:
+            "1": "80"
+            "2": "88"
+            "3": "96"
+            "4": "104"
+            "5": "112"
+            "6": "120"
+            "7": "130"
+            "8": "140"
+            "9": "150"
+            "10": "160"
+            "11": "168"
+            "12": "176"
+            "13": "184"
+            "14": "192"
+            "15": "200"
+        Skill_Adjacent_Target_Ability_Multiplier:
+          key: "Character_Skill_Level"
+          scale:
+            "1": "30"
+            "2": "33"
+            "3": "36"
+            "4": "39"
+            "5": "42"
+            "6": "45"
+            "7": "48.75"
+            "8": "52.50"
+            "9": "56.25"
+            "10": "60"
+            "11": "63"
+            "12": "66"
+            "13": "69"
+            "14": "72"
+            "15": "75"
+        Ultimate_Rainblade_Ability_Multiplier:
+          key: "Character_Ultimate_Level"
+          scale:
+            "1": "14.4"
+            "2": "15.36"
+            "3": "16.32"
+            "4": "17.28"
+            "5": "18.24"
+            "6": "19.20"
+            "7": "20.40"
+            "8": "21.60"
+            "9": "22.80"
+            "10": "24"
+            "11": "24.96"
+            "12": "25.92"
+            "13": "26.88"
+            "14": "27.84"
+            "15": "28.80"
+        Ultimate_Crimson_Knot_Ability_Multiplier:
+          key: "Character_Ultimate_Level"
+          scale:
+            "1": "9"
+            "2": "9.6"
+            "3": "10.2"
+            "4": "10.8"
+            "5": "11.4"
+            "6": "12"
+            "7": "12.75"
+            "8": "13.5"
+            "9": "14.25"
+            "10": "15"
+            "11": "15.6"
+            "12": "16.2"
+            "13": "16.8"
+            "14": "17.4"
+            "15": "18"
+        Ultimate_Stygian_Resurge_Ability_Multiplier:
+          key: "Character_Ultimate_Level"
+          scale:
+            "1": "72"
+            "2": "76.8"
+            "3": "81.6"
+            "4": "86.4"
+            "5": "91.2"
+            "6": "96"
+            "7": "102"
+            "8": "108"
+            "9": "114"
+            "10": "120"
+            "11": "124.8"
+            "12": "129.6"
+            "13": "134.4"
+            "14": "139.2"
+            "15": "144"
+        Trace_Thunder_Core_Ability_Multiplier:
+          key: "Character_Trace_3"
+          scale:
+            "true": "25"
+            "false": "0"
       optimization-target:
         BASIC_ATTACK:
           formula: >-
-            (Ability_Multiplier / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Basic_Attack_Damage_Boost) / 100)
-            * ${target-formula}
-          dropdown:
-            - title: "Level"
-              stats:
-                - "Ability_Multiplier"
-              scale:
-                "1":
-                  - "50"
-                "2":
-                  - "60"
-                "3":
-                  - "70"
-                "4":
-                  - "80"
-                "5":
-                  - "90"
-                "6":
-                  - "100"
-                "7":
-                  - "110"
-                "8":
-                  - "120"
-                "9":
-                  - "130"
-            - title: "Critical hit"
-              stats:
-                - "Crit_Rate"
-              scale:
-                "no": "0"
-                "average": "${formula.base-stat.CRIT_RATE}"
-                "yes": "100"
+            (scale-mapping.Basic_Attack_Ability_Multiplier / 100 * The_Abyss / 100 * (${formula.base-stat.ATK}) + EXTRA_DMG / 100)
+            * (1 + (LIGHTNING_DMG_BOOST + COMMON_DMG_BOOST + BASIC_ATTACK_DMG_BOOST) / 100)
+            * ${regular-damage-formula-common}
+          common-dropdown-used:
+            - "CRITICAL_HIT"
+            - "TOUGHNESS_BREAK"
         SKILL_MAIN_TARGET:
           formula: >-
-            (Ability_Multiplier / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Skill_Damage_Boost) / 100)
-            * ${target-formula}
-          dropdown:
-            - title: "Level"
-              stats:
-                - "Ability_Multiplier"
-              scale:
-                "1":
-                  - "80"
-                "2":
-                  - "88"
-                "3":
-                  - "96"
-                "4":
-                  - "104"
-                "5":
-                  - "112"
-                "6":
-                  - "120"
-                "7":
-                  - "130"
-                "8":
-                  - "140"
-                "9":
-                  - "150"
-                "10":
-                  - "160"
-                "11":
-                  - "168"
-                "12":
-                  - "176"
-                "13":
-                  - "184"
-                "14":
-                  - "192"
-                "15":
-                  - "200"
-            - title: "Critical hit"
-              stats:
-                - "Crit_Rate"
-              scale:
-                "no": "0"
-                "average": "${formula.base-stat.CRIT_RATE}"
-                "yes": "100"
+            (scale-mapping.Skill_Main_Target_Ability_Multiplier / 100 * The_Abyss / 100 * (${formula.base-stat.ATK}) + EXTRA_DMG / 100)
+            * (${formula.character.ACHERON.skill-dmg-boost})
+            * ${regular-damage-formula-common}
+          common-dropdown-used:
+            - "CRITICAL_HIT"
+            - "TOUGHNESS_BREAK"
         SKILL_SINGLE_ADJACENT_TARGET:
           formula: >-
-            (Ability_Multiplier / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Skill_Damage_Boost) / 100)
-            * ${target-formula}
-          dropdown:
-            - title: "Level"
-              stats:
-                - "Ability_Multiplier"
-              scale:
-                "1":
-                  - "30"
-                "2":
-                  - "33"
-                "3":
-                  - "36"
-                "4":
-                  - "39"
-                "5":
-                  - "42"
-                "6":
-                  - "45"
-                "7":
-                  - "48.75"
-                "8":
-                  - "52.50"
-                "9":
-                  - "56.25"
-                "10":
-                  - "60"
-                "11":
-                  - "63"
-                "12":
-                  - "66"
-                "13":
-                  - "69"
-                "14":
-                  - "72"
-                "15":
-                  - "75"
-            - title: "Critical hit"
-              stats:
-                - "Crit_Rate"
-              scale:
-                "no": "0"
-                "average": "${formula.base-stat.CRIT_RATE}"
-                "yes": "100"
+            (scale-mapping.Skill_Adjacent_Target_Ability_Multiplier / 100 * The_Abyss / 100 * (${formula.base-stat.ATK}) + EXTRA_DMG / 100)
+            * (${formula.character.ACHERON.skill-dmg-boost})
+            * ${regular-damage-formula-common}
+          common-dropdown-used:
+            - "CRITICAL_HIT"
+            - "TOUGHNESS_BREAK"
         SKILL_THREE_TARGETS:
           formula: >-
-            (
-            (Main_Target_Multiplier / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Skill_Damage_Boost) / 100)
-            * ${target-formula}
-            )
-            + 2
-            * (
-            (Adjacent_Target_Multiplier / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Skill_Damage_Boost) / 100)
-            * ${target-formula}}
-            )
-          dropdown:
-            - title: "Level"
-              stats:
-                - "Main_Target_Multiplier"
-                - "Adjacent_Target_Multiplier"
-              scale:
-                "1":
-                  - "80"
-                  - "30"
-                "2":
-                  - "88"
-                  - "33"
-                "3":
-                  - "96"
-                  - "36"
-                "4":
-                  - "104"
-                  - "39"
-                "5":
-                  - "112"
-                  - "42"
-                "6":
-                  - "120"
-                  - "45"
-                "7":
-                  - "130"
-                  - "48.75"
-                "8":
-                  - "140"
-                  - "52.50"
-                "9":
-                  - "150"
-                  - "56.25"
-                "10":
-                  - "160"
-                  - "60"
-                "11":
-                  - "168"
-                  - "63"
-                "12":
-                  - "176"
-                  - "66"
-                "13":
-                  - "184"
-                  - "69"
-                "14":
-                  - "192"
-                  - "72"
-                "15":
-                  - "200"
-                  - "75"
-            - title: "Critical hit"
-              stats:
-                - "Crit_Rate"
-              scale:
-                "no": "0"
-                "average": "${formula.base-stat.CRIT_RATE}"
-                "yes": "100"
-        ULTIMATE_RAINBLADE_MAIN_TARGET_SINGLE_MOVE:
+            (${formula.character.ACHERON.optimization-target.SKILL_MAIN_TARGET.formula})
+            + 2 * (${formula.character.ACHERON.optimization-target.SKILL_SINGLE_ADJACENT_TARGET.formula})
+          common-dropdown-used:
+            - "CRITICAL_HIT"
+            - "TOUGHNESS_BREAK"
+        ULTIMATE_RAINBLADE_SINGLE_MOVE:
           formula: >-
-            ((Ability_Multiplier + Crimson_Knot_Multiplier * Crimson_Knot_Stack) / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
+            (scale-mapping.Ultimate_Rainblade_Ability_Multiplier / 100 * The_Abyss / 100 * (${formula.base-stat.ATK}) + EXTRA_DMG / 100)
+            * (${formula.character.ACHERON.ult-dmg-boost})
+            * ${regular-damage-formula-common}
+          common-dropdown-used:
+            - "CRITICAL_HIT"
+            - "TOUGHNESS_BREAK"
+        ULTIMATE_RAINBLADE_CRIMSON_KNOT_SINGLE_TARGET_FIRST_MOVE:
+          formula: >-
+            (scale-mapping.Ultimate_Crimson_Knot_Ability_Multiplier * Crimson_Knot_Stack_1 / 100 * The_Abyss / 100 * (${formula.base-stat.ATK}) + EXTRA_DMG / 100)
+            * (${formula.character.ACHERON.ult-dmg-boost})
+            * ${regular-damage-formula-common}
           dropdown:
-            - title: "Level"
-              stats:
-                - "Ability_Multiplier"
-                - "Crimson_Knot_Multiplier"
-              scale:
-                "1":
-                  - "14.4"
-                  - "9"
-                "2":
-                  - "15.36"
-                  - "9.6"
-                "3":
-                  - "16.32"
-                  - "10.2"
-                "4":
-                  - "17.28"
-                  - "10.8"
-                "5":
-                  - "18.24"
-                  - "11.4"
-                "6":
-                  - "19.20"
-                  - "12"
-                "7":
-                  - "20.40"
-                  - "12.75"
-                "8":
-                  - "21.60"
-                  - "13.5"
-                "9":
-                  - "22.80"
-                  - "14.25"
-                "10":
-                  - "24"
-                  - "15"
-                "11":
-                  - "24.96"
-                  - "15.6"
-                "12":
-                  - "25.92"
-                  - "16.2"
-                "13":
-                  - "26.88"
-                  - "16.8"
-                "14":
-                  - "27.84"
-                  - "17.4"
-                "15":
-                  - "28.80"
-                  - "18"
-            - title: "Crimson Knot(s) removed"
-              stats:
-                - "Crimson_Knot_Stack"
+            - title: "Crimson Knot(s) removed in the first hit"
+              placeholders:
+                - "Crimson_Knot_Stack_1"
               scale:
                 "0":
                   - "0"
@@ -297,57 +227,18 @@ formula:
                   - "3"
                 "3":
                   - "4"
-            - title: "Critical hit"
-              stats:
-                - "Crit_Rate"
-              scale:
-                "no": "0"
-                "average": "${formula.base-stat.CRIT_RATE}"
-                "yes": "100"
-        ULTIMATE_RAINBLADE_SINGLE_OTHER_TARGET_SINGLE_MOVE:
+          common-dropdown-used:
+            - "CRITICAL_HIT"
+            - "TOUGHNESS_BREAK"
+        ULTIMATE_RAINBLADE_CRIMSON_KNOT_SINGLE_TARGET_SECOND_MOVE:
           formula: >-
-            ((Crimson_Knot_Multiplier * Crimson_Knot_Stack) / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
+            (scale-mapping.Ultimate_Crimson_Knot_Ability_Multiplier * Crimson_Knot_Stack_2 / 100 * The_Abyss / 100 * (${formula.base-stat.ATK}) + EXTRA_DMG / 100)
+            * (${formula.character.ACHERON.ult-dmg-boost})
+            * ${regular-damage-formula-common}
           dropdown:
-            - title: "Level"
-              stats:
-                - "Crimson_Knot_Multiplier"
-              scale:
-                "1":
-                  - "9"
-                "2":
-                  - "9.6"
-                "3":
-                  - "10.2"
-                "4":
-                  - "10.8"
-                "5":
-                  - "11.4"
-                "6":
-                  - "12"
-                "7":
-                  - "12.75"
-                "8":
-                  - "13.5"
-                "9":
-                  - "14.25"
-                "10":
-                  - "15"
-                "11":
-                  - "15.6"
-                "12":
-                  - "16.2"
-                "13":
-                  - "16.8"
-                "14":
-                  - "17.4"
-                "15":
-                  - "18"
-            - title: "Crimson Knot(s) removed"
-              stats:
-                - "Crimson_Knot_Stack"
+            - title: "Crimson Knot(s) removed in the second hit"
+              placeholders:
+                - "Crimson_Knot_Stack_2"
               scale:
                 "0":
                   - "0"
@@ -357,82 +248,18 @@ formula:
                   - "3"
                 "3":
                   - "4"
-            - title: "Critical hit"
-              stats:
-                - "Crit_Rate"
-              scale:
-                "no": "0"
-                "average": "${formula.base-stat.CRIT_RATE}"
-                "yes": "100"
-        ULTIMATE_RAINBLADE_THREE_TARGETS_SINGLE_MOVE:
+          common-dropdown-used:
+            - "CRITICAL_HIT"
+            - "TOUGHNESS_BREAK"
+        ULTIMATE_RAINBLADE_CRIMSON_KNOT_SINGLE_TARGET_THIRD_MOVE:
           formula: >-
-            (
-            ((Ability_Multiplier + Crimson_Knot_Multiplier * Crimson_Knot_Stack) / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
-            )
-            + 2
-            * (
-            ((Crimson_Knot_Multiplier * Crimson_Knot_Stack) / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
-            )
+            (scale-mapping.Ultimate_Crimson_Knot_Ability_Multiplier * Crimson_Knot_Stack_3 / 100  * The_Abyss / 100 * (${formula.base-stat.ATK}) + EXTRA_DMG / 100)
+            * (${formula.character.ACHERON.ult-dmg-boost})
+            * ${regular-damage-formula-common}
           dropdown:
-            - title: "Level"
-              stats:
-                - "Ability_Multiplier"
-                - "Crimson_Knot_Multiplier"
-              scale:
-                "1":
-                  - "14.4"
-                  - "9"
-                "2":
-                  - "15.36"
-                  - "9.6"
-                "3":
-                  - "16.32"
-                  - "10.2"
-                "4":
-                  - "17.28"
-                  - "10.8"
-                "5":
-                  - "18.24"
-                  - "11.4"
-                "6":
-                  - "19.20"
-                  - "12"
-                "7":
-                  - "20.40"
-                  - "12.75"
-                "8":
-                  - "21.60"
-                  - "13.5"
-                "9":
-                  - "22.80"
-                  - "14.25"
-                "10":
-                  - "24"
-                  - "15"
-                "11":
-                  - "24.96"
-                  - "15.6"
-                "12":
-                  - "25.92"
-                  - "16.2"
-                "13":
-                  - "26.88"
-                  - "16.8"
-                "14":
-                  - "27.84"
-                  - "17.4"
-                "15":
-                  - "28.80"
-                  - "18"
-            - title: "Crimson Knot(s) removed"
-              stats:
-                - "Crimson_Knot_Stack"
+            - title: "Crimson Knot(s) removed in the third hit"
+              placeholders:
+                - "Crimson_Knot_Stack_3"
               scale:
                 "0":
                   - "0"
@@ -442,182 +269,36 @@ formula:
                   - "3"
                 "3":
                   - "4"
-            - title: "Critical hit"
-              stats:
-                - "Crit_Rate"
-              scale:
-                "no": "0"
-                "average": "${formula.base-stat.CRIT_RATE}"
-                "yes": "100"
+          common-dropdown-used:
+            - "CRITICAL_HIT"
+            - "TOUGHNESS_BREAK"
         ULTIMATE_STYGIAN_RESURGE_SINGLE_TARGET:
           formula: >-
-            (Ability_Multiplier / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
-          dropdown:
-            - title: "Level"
-              stats:
-                - "Ability_Multiplier"
-              scale:
-                "1":
-                  - "72"
-                "2":
-                  - "76.8"
-                "3":
-                  - "81.6"
-                "4":
-                  - "86.4"
-                "5":
-                  - "91.2"
-                "6":
-                  - "96"
-                "7":
-                  - "102"
-                "8":
-                  - "108"
-                "9":
-                  - "114"
-                "10":
-                  - "120"
-                "11":
-                  - "124.8"
-                "12":
-                  - "129.6"
-                "13":
-                  - "134.4"
-                "14":
-                  - "139.2"
-                "15":
-                  - "144"
-            - title: "Critical hit"
-              stats:
-                - "Crit_Rate"
-              scale:
-                "no": "0"
-                "average": "${formula.base-stat.CRIT_RATE}"
-                "yes": "100"
-        ULTIMATE_STYGIAN_RESURGE_BOUNCE_ATTACK_TOTAL:
+            (scale-mapping.Ultimate_Stygian_Resurge_Ability_Multiplier / 100 * The_Abyss / 100 * (${formula.base-stat.ATK}) + EXTRA_DMG / 100)
+            * (${formula.character.ACHERON.ult-dmg-boost})
+            * ${regular-damage-formula-common}
+          common-dropdown-used:
+            - "CRITICAL_HIT"
+            - "TOUGHNESS_BREAK"
+        ULTIMATE_STYGIAN_RESURGE_BOUNCE_ATTACK_SINGLE_TARGET:
           formula: >-
-            6 * (Trace_Thunder_Core_Ability_Multiplier / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
-          dropdown:
-            - title: "Critical hit"
-              stats:
-                - "Crit_Rate"
-              scale:
-                "no": "0"
-                "average": "${formula.base-stat.CRIT_RATE}"
-                "yes": "100"
+            (scale-mapping.Trace_Thunder_Core_Ability_Multiplier / 100 * The_Abyss / 100 * (${formula.base-stat.ATK}) + EXTRA_DMG / 100)
+            * (${formula.character.ACHERON.ult-dmg-boost})
+            * ${regular-damage-formula-common}
+          common-dropdown-used:
+            - "CRITICAL_HIT"
+            - "TOUGHNESS_BREAK"
         ULTIMATE_ALL_THREE_TARGETS:
           formula: >-
-            (
-            ((Rainblade_Ability_Multiplier + Crimson_Knot_Multiplier * Crimson_Knot_Stack_1) / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
-            )
-            + 2
-            * (
-            ((Crimson_Knot_Multiplier * Crimson_Knot_Stack_1) / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
-            )
-            + (
-            ((Rainblade_Ability_Multiplier + Crimson_Knot_Multiplier * Crimson_Knot_Stack_2) / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
-            )
-            + 2
-            * (
-            ((Crimson_Knot_Multiplier * Crimson_Knot_Stack_2) / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
-            )
-            + (
-            ((Rainblade_Ability_Multiplier + Crimson_Knot_Multiplier * Crimson_Knot_Stack_3) / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
-            )
-            + 2
-            * (
-            ((Crimson_Knot_Multiplier * Crimson_Knot_Stack_3) / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
-            )
-            + 3
-            * (
-            (Ability_Multiplier / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
-            )
-            + (
-            6 * (Trace_Thunder_Core_Ability_Multiplier / 100 * ${base-damage-common})
-            * (${crit-damage})
-            * (1 + (Lightning_Damage_Boost + Damage_Boost + Ultimate_Damage_Boost) / 100)
-            * ${target-formula}
-            )
+            3 * (${formula.character.ACHERON.optimization-target.ULTIMATE_RAINBLADE_SINGLE_MOVE.formula})
+            + (${formula.character.ACHERON.optimization-target.ULTIMATE_RAINBLADE_CRIMSON_KNOT_SINGLE_TARGET_FIRST_MOVE.formula})
+            + (${formula.character.ACHERON.optimization-target.ULTIMATE_RAINBLADE_CRIMSON_KNOT_SINGLE_TARGET_SECOND_MOVE.formula})
+            + (${formula.character.ACHERON.optimization-target.ULTIMATE_RAINBLADE_CRIMSON_KNOT_SINGLE_TARGET_THIRD_MOVE.formula})
+            + 3 * (${formula.character.ACHERON.optimization-target.ULTIMATE_STYGIAN_RESURGE_SINGLE_TARGET.formula})
+            + 6 * (${formula.character.ACHERON.optimization-target.ULTIMATE_STYGIAN_RESURGE_BOUNCE_ATTACK_SINGLE_TARGET.formula})
           dropdown:
-            - title: "Level"
-              stats:
-                - "Rainblade_Ability_Multiplier"
-                - "Crimson_Knot_Multiplier"
-              scale:
-                "1":
-                  - "14.4"
-                  - "9"
-                "2":
-                  - "15.36"
-                  - "9.6"
-                "3":
-                  - "16.32"
-                  - "10.2"
-                "4":
-                  - "17.28"
-                  - "10.8"
-                "5":
-                  - "18.24"
-                  - "11.4"
-                "6":
-                  - "19.20"
-                  - "12"
-                "7":
-                  - "20.40"
-                  - "12.75"
-                "8":
-                  - "21.60"
-                  - "13.5"
-                "9":
-                  - "22.80"
-                  - "14.25"
-                "10":
-                  - "24"
-                  - "15"
-                "11":
-                  - "24.96"
-                  - "15.6"
-                "12":
-                  - "25.92"
-                  - "16.2"
-                "13":
-                  - "26.88"
-                  - "16.8"
-                "14":
-                  - "27.84"
-                  - "17.4"
-                "15":
-                  - "28.80"
-                  - "18"
             - title: "Crimson Knot(s) removed in the first hit"
-              stats:
+              placeholders:
                 - "Crimson_Knot_Stack_1"
               scale:
                 "0":
@@ -629,7 +310,7 @@ formula:
                 "3":
                   - "4"
             - title: "Crimson Knot(s) removed in the second hit"
-              stats:
+              placeholders:
                 - "Crimson_Knot_Stack_2"
               scale:
                 "0":
@@ -641,7 +322,7 @@ formula:
                 "3":
                   - "4"
             - title: "Crimson Knot(s) removed in the third hit"
-              stats:
+              placeholders:
                 - "Crimson_Knot_Stack_3"
               scale:
                 "0":
@@ -652,31 +333,44 @@ formula:
                   - "3"
                 "3":
                   - "4"
-            - title: "Critical hit"
-              stats:
-                - "Crit_Rate"
+          common-dropdown-used:
+            - "CRITICAL_HIT"
+            - "TOUGHNESS_BREAK"
+        LIGHTNING_BREAK_DAMAGE:
+          formula: >-
+            (${break-base-damage.LIGHTNING}) * ${break-dmg-formula-common}
+        SUPER_BREAK_DAMAGE:
+          formula: >-
+            ${super-break-dmg-formula}
+      trace:
+        THE_ABYSS:
+          description: "When there are 1 or 2 Nihility characters other than Acheron in the team, the DMG dealt by Acheron's Basic ATK, Skill, and Ultimate increases to 115.00% or 160.00% of the original DMG respectively."
+          dropdown:
+            - title: "Number of Nihility characters other than Acheron in the team"
+              placeholders:
+                - "The_Abyss"
               scale:
-                "no": "0"
-                "average": "${formula.base-stat.CRIT_RATE}"
-                "yes": "100"
-
-  break-base-damage:
-    PHYSICAL: "2 * Level_Multiplier * Max_Toughness_Multiplier"
-    FIRE: "2 * Level_Multiplier * Max_Toughness_Multiplier"
-    ICE: "1 * Level_Multiplier * Max_Toughness_Multiplier"
-    LIGHTNING: "1 * Level_Multiplier * Max_Toughness_Multiplier"
-    WIND: "1.5 * Level_Multiplier * Max_Toughness_Multiplier"
-    QUANTUM: "0.5 * Level_Multiplier * Max_Toughness_Multiplier"
-    IMAGINARY: "0.5 * Level_Multiplier * Max_Toughness_Multiplier"
-
-  dot-base-damage:
-    PHYSICAL: "Bleed_Multiplier * Max_HP_Target"
-    FIRE: "1 * Level_Multiplier"
-    ICE: "1 * Level_Multiplier"
-    LIGHTNING: "2 * Level_Multiplier"
-    WIND: "1 * Stack_Count * Level_Multiplier"
-    QUANTUM: "0.6 * Stack_Count * Level_Multiplier * Max_Toughness_Multiplier"
-    IMAGINARY: "0"
+                "0":
+                  - "0"
+                "1":
+                  - "115"
+                "2":
+                  - "160"
+        THUNDER_CORE:
+          description: "When the Ultimate's Rainblade hits enemy targets that have Crimson Knot, the DMG dealt by Acheron increases by 30.00%, stacking up to 3 time(s) and lasting for 3 turn(s). And when Stygian Resurge triggers, additionally deals DMG for 6 times. Each time deals Lightning DMG equal to 25.00% of Acheron's ATK to a single random enemy and is considered as Ultimate DMG."
+          dropdown:
+            - title: "Crimson Knot damage boost stack"
+              stats:
+                - "COMMON_DMG_BOOST"
+              scale:
+                "0":
+                  - "0"
+                "1":
+                  - "30"
+                "2":
+                  - "60"
+                "3":
+                  - "90"
 
   damage:
     REGULAR_DMG: "(${base-dmg}) * Crit * Total_DMG_Boost * (${weaken-multiplier}) * (${target-defence-multiplier}) * (${target-resistance-multiplier}}) * (${target-vulnerability-multiplier}}) * DMG_Mitigation * Broken"
