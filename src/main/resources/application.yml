@@ -20,12 +20,12 @@ project-yatta:
 
 relic-stat-mapper:
   # stats appear in relics
-  HP: "HP_FLAT"
-  HP_: "HP_PERCENT"
-  ATK: "ATK_FLAT"
-  ATK_: "ATK_PERCENT"
-  DEF: "DEF_FLAT"
-  DEF_: "DEF_PERCENT"
+  "[HP]": "HP_FLAT"
+  "[HP_]": "HP_PERCENT"
+  "[ATK]": "ATK_FLAT"
+  "[ATK_]": "ATK_PERCENT"
+  "[DEF]": "DEF_FLAT"
+  "[DEF_]": "DEF_PERCENT"
   "[Effect Hit Rate]": "EFFECT_HIT_RATE"
   "[Effect Hit Rate_]": "EFFECT_HIT_RATE"
   "[Outgoing Healing Boost]": "OUTGOING_HEALING_BOOST"

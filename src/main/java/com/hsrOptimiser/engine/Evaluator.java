@@ -49,6 +49,14 @@ public class Evaluator {
         return variables;
     }
 
+    public static HashMap<String, Float> deepCopy(HashMap<String, Float> original) {
+        return original.entrySet()
+            .stream()
+            .collect(HashMap::new,
+                (map, entry) -> map.put(entry.getKey(), entry.getValue()),
+                HashMap::putAll);
+    }
+
     private float evaluateFormula(HashMap<String, Float> otherBonuses, String formula) {
         Set<String> variables = extractVariables(formula);
 
@@ -104,8 +112,9 @@ public class Evaluator {
     }
 
     private float calculateStatValue(ArrayList<PopulatedRelic> relics,
-        HashMap<String, Float> otherBonuses,
+        HashMap<String, Float> allBonus,
         String formula) {
+        HashMap<String, Float> otherBonuses = deepCopy(allBonus);
         ArrayList<String> relicSets = relics.stream().map(Relic::getSetId).collect(
             Collectors.toCollection(ArrayList::new));
         Map<String, Long> relicSetCount = relicSets.stream()
@@ -114,22 +123,31 @@ public class Evaluator {
             if (properties.getSetBonus().containsKey(set)) {
                 HashMap<Integer, ArrayList<StatBonus>> setBonus = properties.getSetBonus()
                     .get(set);
-                if (setBonus.containsKey(count.intValue())) {
-                    ArrayList<StatBonus> bonus = setBonus.get(count.intValue());
-                    bonus.forEach(statBonus -> {
-                        if (statBonus.getCondition() == null) {
-                            otherBonuses.merge(statBonus.getStat(), statBonus.getValue(),
-                                Float::sum);
-                        } else {
-                            float val = calculateStatValue(relics, otherBonuses,
-                                properties.getFormula().getBaseStat()
-                                    .get(statBonus.getCondition().getStat()));
-                            if (val > statBonus.getCondition().getValue()) {
+                for (int i = 1; i <= count; i++) {
+                    if (setBonus.containsKey(i)) {
+                        ArrayList<StatBonus> bonus = setBonus.get(i);
+                        bonus.forEach(statBonus -> {
+                            if (statBonus.getCondition() == null) {
                                 otherBonuses.merge(statBonus.getStat(), statBonus.getValue(),
                                     Float::sum);
+                            } else {
+//                            AtomicBoolean flag = new AtomicBoolean(true);
+//                            statBonus.getCondition().forEach(statBonusCondition -> {
+//                                float val = calculateStatValue(relics, otherBonuses,
+//                                    properties.getFormula().getBaseStat()
+//                                        .get(statBonusCondition.getStat()));
+//                                if (val < statBonusCondition.getValue()) {
+//                                    flag.set(false);
+//                                }
+//                            });
+//                            if (flag.get()) {
+//                                otherBonuses.merge(statBonus.getStat(), statBonus.getValue(),
+//                                    Float::sum);
+//                            }
+                                // TODO: 04/11/2024 implement the conditional bonus
                             }
-                        }
-                    });
+                        });
+                    }
                 }
             }
         });

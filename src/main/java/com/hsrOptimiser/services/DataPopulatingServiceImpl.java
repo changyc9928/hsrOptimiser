@@ -190,7 +190,7 @@ public class DataPopulatingServiceImpl implements DataPopulatingService {
 
     private HashMap<String, Float> calculateStatBonuses(ProjectYattaData cd, Character character) {
         HashMap<String, Float> bonus = new HashMap<>();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 1; i < 11; i++) {
             String id = String.format("%d", 200 + i);
             if (character.getTraces().getStat(id)) {
                 SubSkills subSkills = cd.getTraces().getSubSkills().get(character.getId() + id);

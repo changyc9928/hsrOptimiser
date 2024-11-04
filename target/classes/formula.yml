@@ -51,7 +51,7 @@ formula:
     SPD: "Character_SPD * (1 + SPD_PERCENT / 100) + SPD_FLAT"
     CRIT Rate: "Character_Base_CRIT_Rate + CRIT_RATE"
     CRIT DMG: "Character_Base_CRIT_DMG + CRIT_DMG"
-    Energy Regeneration Rate: "ENERGY_REGENERATION_RATE"
+    Energy Regeneration Rate: "ENERGY_REGENERATION_RATE + 100"
     Effect Hit Rate: "EFFECT_HIT_RATE"
     Effect RES: "EFFECT_RES"
     Break Effect: "BREAK_EFFECT"

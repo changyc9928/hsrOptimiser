@@ -18,6 +18,7 @@ public class StatsMappingSerializer extends JsonObjectDeserializer<String> {
     @Override
     protected String deserializeObject(JsonParser jsonParser, DeserializationContext context,
         ObjectCodec codec, JsonNode tree) throws IOException {
-        return Objects.requireNonNull(properties.getRelicStatMapper().get(tree.textValue()));
+        String stat = tree.textValue();
+        return Objects.requireNonNull(properties.getRelicStatMapper().get(stat));
     }
 }
