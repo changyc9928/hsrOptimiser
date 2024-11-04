@@ -1,7 +1,7 @@
 crit-damage: "1 + (Crit_Rate) / 100 * (${formula.base-stat.CRIT DMG}) / 100"
 weaken-multiplier: "1 - WEAKEN"
 target-defence-multiplier: "(Character_Level + 20) / ((Enemy_Level + 20) * (1 - DEF_REDUCTION - DEF_IGNORE) + Character_Level + 20)"
-target-resistance-multiplier: "1 - (Enemy_Resistance - RES_PENALTY)"
+target-resistance-multiplier: "1 - (Enemy_Resistance / 100 - RES_PENALTY / 100)"
 target-vulnerability-multiplier: "1 + ELEMENTAL_VULNERABILITY + ALL_TYPE_VULNERABILITY + DOT_VULNERABILITY"
 damage-on-target-formula-common: "(${target-defence-multiplier}) * (${target-resistance-multiplier}}) * (${target-vulnerability-multiplier}}) * Broken"
 regular-damage-formula-common: "(${crit-damage}) * (${weaken-multiplier}) * ${damage-on-target-formula-common} * DMG_Mitigation"
@@ -29,7 +29,7 @@ dot-base-damage:
 dropdown:
   CRITICAL_HIT:
     title: "Critical hit"
-    stats:
+    placeholders:
       - "Crit_Rate"
     scale:
       "no": "0"
@@ -37,7 +37,7 @@ dropdown:
       "yes": "100"
   TOUGHNESS_BREAK:
     title: "Enemy toughness broken"
-    stats:
+    placeholders:
       - "Broken"
     scale:
       "no": "0.9"

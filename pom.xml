@@ -40,6 +40,11 @@
     <!--			<scope>runtime</scope>-->
     <!--		</dependency>-->
     <dependency>
+      <artifactId>exp4j</artifactId>
+      <groupId>net.objecthunter</groupId>
+      <version>0.4.8</version>
+    </dependency>
+    <dependency>
       <artifactId>spring-boot-starter-webflux</artifactId>
       <groupId>org.springframework.boot</groupId>
     </dependency>

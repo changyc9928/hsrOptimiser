@@ -16,9 +16,9 @@ import com.hsrOptimiser.domain.projectYatta.SubSkills;
 import com.hsrOptimiser.domain.projectYatta.Upgrade;
 import com.hsrOptimiser.properties.Properties;
 import com.hsrOptimiser.properties.RarityStat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -40,10 +40,22 @@ public class DataPopulatingServiceImpl implements DataPopulatingService {
         return populatedData;
     }
 
-    private ArrayList<PopulatedRelic> fetchPopulatedRelics(ScannedData scannedData) {
+    private HashMap<String, PopulatedRelic> fetchPopulatedRelics(ScannedData scannedData) {
+        @Data
+        class RHashMap {
+
+            String id;
+            PopulatedRelic populatedRelic;
+        }
         return scannedData.getRelics().stream()
-            .map(this::transformRelic)
-            .collect(Collectors.toCollection(ArrayList::new));
+            .map(relic -> {
+                RHashMap ret = new RHashMap();
+                ret.setId(relic.getUid());
+                ret.setPopulatedRelic(transformRelic(relic));
+                return ret;
+            })
+            .collect(Collectors.toMap(RHashMap::getId, RHashMap::getPopulatedRelic, (x, y) -> x,
+                HashMap::new));
     }
 
     private PopulatedRelic transformRelic(Relic relic) {
@@ -75,19 +87,43 @@ public class DataPopulatingServiceImpl implements DataPopulatingService {
         }
     }
 
-    private ArrayList<PopulatedCharacter> fetchPopulatedCharacters(ScannedData scannedData) {
-        return (ArrayList<PopulatedCharacter>) Flux.fromIterable(scannedData.getCharacters())
+    private HashMap<String, PopulatedCharacter> fetchPopulatedCharacters(ScannedData scannedData) {
+        @Data
+        class CHashMap {
+
+            String id;
+            PopulatedCharacter populatedCharacter;
+        }
+        return (HashMap<String, PopulatedCharacter>) Flux.fromIterable(scannedData.getCharacters())
             .flatMap(character -> projectYattaClient.getCharacterDataAsync(character.getId())
-                .map(characterResponse -> mapToPopulatedCharacter(character, characterResponse)))
-            .collectList()
+                .map(characterResponse -> {
+                    CHashMap ret = new CHashMap();
+                    ret.setPopulatedCharacter(
+                        mapToPopulatedCharacter(character, characterResponse));
+                    ret.setId(character.getId());
+                    return ret;
+                }))
+            .collectMap(CHashMap::getId, CHashMap::getPopulatedCharacter)
             .block();
     }
 
-    private ArrayList<PopulatedLightCone> fetchPopulatedLightCones(ScannedData scannedData) {
-        return (ArrayList<PopulatedLightCone>) Flux.fromIterable(scannedData.getLightCones())
+    private HashMap<String, PopulatedLightCone> fetchPopulatedLightCones(ScannedData scannedData) {
+        @Data
+        class LHashMap {
+
+            String id;
+            PopulatedLightCone populatedLightCone;
+        }
+        return (HashMap<String, PopulatedLightCone>) Flux.fromIterable(scannedData.getLightCones())
             .flatMap(lightCone -> projectYattaClient.getLightConeDataAsync(lightCone.getId())
-                .map(lightConeResponse -> mapToPopulatedLightCone(lightCone, lightConeResponse)))
-            .collectList()
+                .map(lightConeResponse -> {
+                    LHashMap ret = new LHashMap();
+                    ret.setPopulatedLightCone(
+                        mapToPopulatedLightCone(lightCone, lightConeResponse));
+                    ret.setId(lightCone.getUid());
+                    return ret;
+                }))
+            .collectMap(LHashMap::getId, LHashMap::getPopulatedLightCone)
             .block();
     }
 

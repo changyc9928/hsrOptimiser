@@ -1,13 +1,14 @@
 package com.hsrOptimiser.domain.hsrScanner.populatedData;
 
-import java.util.ArrayList;
+import java.io.Serializable;
+import java.util.HashMap;
 import lombok.Data;
 
 @Data
-public class PopulatedData {
+public class PopulatedData implements Serializable {
 
-    ArrayList<PopulatedCharacter> characters;
-    ArrayList<PopulatedLightCone> lightCones;
-    ArrayList<PopulatedRelic> relics;
+    HashMap<String, PopulatedCharacter> characters;
+    HashMap<String, PopulatedLightCone> lightCones;
+    HashMap<String, PopulatedRelic> relics;
 }
 

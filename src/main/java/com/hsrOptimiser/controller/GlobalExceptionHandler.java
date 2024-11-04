@@ -12,9 +12,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<String>> handleException(Exception e) {
+        System.out.println(Arrays.toString(e.getStackTrace()));
         ApiResponse<String> response = new ApiResponse<>(
             false,
-            Arrays.toString(e.getStackTrace()),
+            null,
             e.getMessage(),
             HttpStatus.INTERNAL_SERVER_ERROR.value()
         );
