@@ -3,110 +3,134 @@ set-bonus:
     2:
       - stat: OUTGOING_HEALING_BOOST
         value: 10
+        condition: [ ]
 
   102: # Musketeer of Wild Wheat
     2:
       - stat: ATK_PERCENT
         value: 12
+        condition: [ ]
     4:
       - stat: SPD_PERCENT
         value: 6
+        condition: [ ]
       - stat: BASIC_ATTACK_DMG_BOOST
         value: 10
+        condition: [ ]
 
   103: # Knight of Purity Palace
     2:
       - stat: DEF_PERCENT
         value: 15
+        condition: [ ]
     4:
       - stat: SHIELD_DMG_ABSORPTION
         value: 20
+        condition: [ ]
 
   104: # Hunter of Glacial Forest
     2:
       - stat: ICE_DMG_BOOST
         value: 10
+        condition: [ ]
 
   105: # Champion of Streetwise Boxing
     2:
       - stat: PHYSICAL_DMG_BOOST
         value: 10
+        condition: [ ]
 
   106: # Guard of Wuthering Snow
     2:
       - stat: DMG_REDUCTION
         value: 8
+        condition: [ ]
 
   107: # Firesmith of Lava-Forging
     2:
       - stat: FIRE_DMG_BOOST
         value: 10
+        condition: [ ]
     4:
       - stat: SKILL_DMG_BOOST
         value: 12
+        condition: [ ]
 
   108: # Genius of Brilliant Stars
     2:
       - stat: QUANTUM_DMG_BOOST
         value: 10
+        condition: [ ]
 
   109: # Band of Sizzling Thunder
     2:
       - stat: LIGHTNING_DMG_BOOST
         value: 10
+        condition: [ ]
 
   110: # Eagle of Twilight Line
     2:
       - stat: WIND_DMG_BOOST
         value: 10
+        condition: [ ]
 
   111: # Thief of Shooting Meteor
     2:
       - stat: BREAK_EFFECT
         value: 16
+        condition: [ ]
     4:
       - stat: BREAK_EFFECT
         value: 16
+        condition: [ ]
 
   112: # Wastelander of Banditry Desert
     2:
       - stat: IMAGINARY_DMG_BOOST
         value: 10
+        condition: [ ]
 
   113: # Longevous Disciple
     2:
       - stat: HP_PERCENT
         value: 12
+        condition: [ ]
 
   114: # Messenger Traversing Hackerspace
     2:
       - stat: SPD_PERCENT
         value: 6
+        condition: [ ]
 
   115: # The Ashblazing Grand Duke
     2:
       - stat: FOLLOW_UP_ATTACK_DMG_BOOST
         value: 20
+        condition: [ ]
 
   116: # Prisoner in Deep Confinement
     2:
       - stat: ATK_PERCENT
         value: 20
+        condition: [ ]
 
   117: # Pioneer Diver of Dead Waters
     4:
       - stat: CRIT_RATE
         value: 4
+        condition: [ ]
 
   118: # Watchmaker, Master of Dream Machinations
     2:
       - stat: BREAK_EFFECT
         value: 16
+        condition: [ ]
 
   119: # Iron Cavalry Against the Scourge
     2:
       - stat: BREAK_EFFECT
         value: 16
+        condition: [ ]
     4:
       - stat: BREAK_DAMAGE_DEF_IGNORE
         value: 10
@@ -123,14 +147,17 @@ set-bonus:
     2:
       - stat: ATK_PERCENT
         value: 12
+        condition: [ ]
     4:
       - stat: CRIT_RATE
         value: 6
+        condition: [ ]
 
   301: # Space Sealing Station
     2:
       - stat: ATK_PERCENT
         value: 12
+        condition: [ ]
       - stat: ATK_PERCENT
         value: 12
         condition:
@@ -141,16 +168,19 @@ set-bonus:
     2:
       - stat: HP_PERCENT
         value: 12
+        condition: [ ]
 
   303: # Pan-Cosmic Commercial Enterprise
     2:
       - stat: EFFECT_HIT_RATE
         value: 10
+        condition: [ ]
 
   304: # Belobog of the Architects
     2:
       - stat: DEF_PERCENT
         value: 15
+        condition: [ ]
       - stat: DEF_PERCENT
         value: 15
         condition:
@@ -161,11 +191,13 @@ set-bonus:
     2:
       - stat: CRIT_DMG
         value: 16
+        condition: [ ]
 
   306: # Inert Salsotto
     2:
       - stat: CRIT_RATE
         value: 8
+        condition: [ ]
       - stat: FOLLOW_UP_ATTACK_DMG_BOOST
         value: 15
         condition:
@@ -181,6 +213,7 @@ set-bonus:
     2:
       - stat: BREAK_EFFECT
         value: 16
+        condition: [ ]
       - stat: BREAK_EFFECT
         value: 20
         condition:
@@ -191,11 +224,13 @@ set-bonus:
     2:
       - stat: ENERGY_REGENERATION_RATE
         value: 5
+        condition: [ ]
 
   309: # Rutilant Arena
     2:
       - stat: CRIT_RATE
         value: 8
+        condition: [ ]
       - stat: BASIC_ATTACK_DMG_BOOST
         value: 20
         condition:
@@ -211,11 +246,13 @@ set-bonus:
     2:
       - stat: EFFECT_RES
         value: 10
+        condition: [ ]
 
   311: # Firmament Frontline: Glamoth
     2:
       - stat: ATK_PERCENT
         value: 12
+        condition: [ ]
       - stat: COMMON_DMG_BOOST
         value: 12
         condition:
@@ -231,28 +268,34 @@ set-bonus:
     2:
       - stat: ENERGY_REGENERATION_RATE
         value: 5
+        condition: [ ]
 
   313: # Sigonia, the Unclaimed Desolation
     2:
       - stat: CRIT_RATE
         value: 4
+        condition: [ ]
 
   314: # Izumo Gensei and Takama Divine Realm
     2:
       - stat: ATK_PERCENT
         value: 12
+        condition: [ ]
 
   316: # Forge of the Kalpagni Lantern
     2:
       - stat: SPD_PERCENT
         value: 6
+        condition: [ ]
 
   317: # Lushaka, the Sunken Seas
     2:
       - stat: ENERGY_REGENERATION_RATE
         value: 5
+        condition: [ ]
 
   318: # The Wondrous BananAmusement Park
     2:
       - stat: CRIT_DMG
         value: 16
+        condition: [ ]

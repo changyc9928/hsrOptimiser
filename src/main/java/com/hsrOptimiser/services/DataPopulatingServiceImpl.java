@@ -18,17 +18,19 @@ import com.hsrOptimiser.properties.Properties;
 import com.hsrOptimiser.properties.RarityStat;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DataPopulatingServiceImpl implements DataPopulatingService {
 
-    @Autowired
     ProjectYattaClient projectYattaClient;
-    @Autowired
     Properties properties;
 
     @Override

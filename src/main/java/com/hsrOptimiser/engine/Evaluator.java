@@ -8,11 +8,15 @@ import com.hsrOptimiser.domain.hsrScanner.populatedData.PopulatedLightCone;
 import com.hsrOptimiser.domain.hsrScanner.populatedData.PopulatedRelic;
 import com.hsrOptimiser.properties.Properties;
 import com.hsrOptimiser.properties.StatBonus;
+import com.hsrOptimiser.properties.StatBonusCondition;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -26,131 +30,199 @@ import org.springframework.stereotype.Component;
 @Setter
 public class Evaluator {
 
-    PopulatedCharacter character;
-    PopulatedLightCone lightCone;
-    EnemySetup enemySetup;
-    String targetFormula;
-    String targetName;
+    private PopulatedCharacter character;
+    private PopulatedLightCone lightCone;
+    private EnemySetup enemySetup;
+    private String targetFormula;
+    private String targetName;
 
     @Autowired
-    Properties properties;
+    private Properties properties;
 
-    private static Set<String> extractVariables(String expression) {
-        Set<String> variables = new HashSet<>();
-        // Regex pattern to find words that are likely variable names
-        Pattern pattern = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_.]*");
-        Matcher matcher = pattern.matcher(expression);
+    private static Set<String> extractVariables(final String expression) {
+        final Set<String> variables = new HashSet<>();
+        final Pattern pattern = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_.]*");
+        final Matcher matcher = pattern.matcher(expression);
 
         while (matcher.find()) {
-            String variable = matcher.group();
-            // Add to set (to avoid duplicates)
-            variables.add(variable);
+            variables.add(matcher.group());
         }
         return variables;
     }
 
-    public static HashMap<String, Float> deepCopy(HashMap<String, Float> original) {
-        return original.entrySet()
-            .stream()
-            .collect(HashMap::new,
-                (map, entry) -> map.put(entry.getKey(), entry.getValue()),
-                HashMap::putAll);
+    public static Map<String, Float> deepCopy(final Map<String, Float> original) {
+        return original.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private float evaluateFormula(HashMap<String, Float> otherBonuses, String formula) {
-        Set<String> variables = extractVariables(formula);
+    private float evaluateFormula(final Map<String, Float> otherBonuses, final String formula) {
+        final Set<String> variables = extractVariables(formula);
+        final Expression expression = new ExpressionBuilder(formula).variables(variables).build();
 
-        Expression expression = new ExpressionBuilder(formula).variables(variables).build();
+        setOtherBonuses(expression, variables, otherBonuses);
+        setCharacterVariables(expression);
+        setLightConeVariables(expression);
+        setEnemyVariables(expression);
 
-        for (String variable : variables) {
-            expression.setVariable(variable, otherBonuses.getOrDefault(variable, 0F));
-        }
+        return (float) expression.evaluate();
+    }
 
+    private void setCharacterVariables(final Expression expression) {
         expression.setVariable("Character_HP", character.getBaseHp());
         expression.setVariable("Character_ATK", character.getBaseAtk());
         expression.setVariable("Character_DEF", character.getBaseDef());
         expression.setVariable("Character_SPD", character.getBaseSpd());
         expression.setVariable("Character_Base_CRIT_Rate", character.getCriticalChance());
         expression.setVariable("Character_Base_CRIT_DMG", character.getCriticalDamage());
+    }
 
+    private void setLightConeVariables(final Expression expression) {
         if (lightCone != null) {
             expression.setVariable("LightCone_HP", lightCone.getBaseHp());
             expression.setVariable("LightCone_ATK", lightCone.getBaseAtk());
             expression.setVariable("LightCone_DEF", lightCone.getBaseDef());
         }
-
-        expression.setVariable("Enemy_Resistance", enemySetup.getResistance());
-        expression.setVariable("Enemy_Level", enemySetup.getLevel());
-
-        return (float) expression.evaluate();
     }
 
-    public CharacterStats getStatDetails(ArrayList<PopulatedRelic> relics,
-        HashMap<String, Float> otherBonuses) {
-        CharacterStats characterStats = new CharacterStats();
+    private void setEnemyVariables(final Expression expression) {
+        expression.setVariable("Enemy_Resistance", enemySetup.getResistance());
+        expression.setVariable("Enemy_Level", enemySetup.getLevel());
+    }
+
+    private void setOtherBonuses(final Expression expression, final Set<String> variables,
+        final Map<String, Float> otherBonuses) {
+        for (final String variable : variables) {
+            // TODO: 05/11/2024 Only allow variables with SCREAMING_SNAKE_CASE to get values from here
+            expression.setVariable(variable, otherBonuses.getOrDefault(variable, 0F));
+        }
+    }
+
+    public CharacterStats getStatDetails(final List<PopulatedRelic> relics,
+        final Map<String, Float> otherBonuses) {
+        final CharacterStats characterStats = new CharacterStats();
         characterStats.setCharacter(character);
         characterStats.setLightCone(lightCone);
-        characterStats.setRelics(relics);
+        characterStats.setRelics((ArrayList<PopulatedRelic>) relics);
 
-        HashMap<String, Float> stats = new HashMap<>();
-        relics.forEach(populatedRelic -> {
-            otherBonuses.merge(populatedRelic.getMainStat(), populatedRelic.getMainStatValue(),
-                Float::sum);
-            populatedRelic.getSubStats().forEach(subStats -> {
-                otherBonuses.merge(subStats.getKey(), subStats.getValue(), Float::sum);
+        final Map<String, Float> updatedBonuses = updateBonusesFromRelicsAndCharacter(relics,
+            otherBonuses);
+
+        final HashMap<String, Float> stats = new HashMap<>();
+        properties.getFormula().getBaseStat().forEach((stat, formula) -> {
+            ArrayList<String> correspondingStat = new ArrayList<>();
+            switch (stat) {
+                case ("HP") -> {
+                    correspondingStat.add("HP_FLAT");
+                    correspondingStat.add("HP_PERCENT");
+                }
+                case ("ATK") -> {
+                    correspondingStat.add("ATK_FLAT");
+                    correspondingStat.add("ATK_PERCENT");
+                }
+                case ("DEF") -> {
+                    correspondingStat.add("DEF_FLAT");
+                    correspondingStat.add("DEF_PERCENT");
+                }
+                case ("SPD") -> {
+                    correspondingStat.add("SPD_FLAT");
+                    correspondingStat.add("SPD_PERCENT");
+                }
+                default -> correspondingStat.add(stat);
+            }
+            correspondingStat.forEach(s -> {
+                float result = calculateStatValue(relics, updatedBonuses, formula, s);
+                stats.put(stat, result);
             });
         });
-        character.getStatBonus().forEach((stat, bonus) -> {
-            otherBonuses.merge(stat, bonus, Float::sum);
-        });
-        properties.getFormula().getBaseStat().forEach((stat, formula) -> {
-            float result = calculateStatValue(relics, otherBonuses, formula);
-            stats.put(stat, result);
-        });
+
         characterStats.setStats(stats);
         return characterStats;
     }
 
-    private float calculateStatValue(ArrayList<PopulatedRelic> relics,
-        HashMap<String, Float> allBonus,
-        String formula) {
-        HashMap<String, Float> otherBonuses = deepCopy(allBonus);
-        ArrayList<String> relicSets = relics.stream().map(Relic::getSetId).collect(
-            Collectors.toCollection(ArrayList::new));
-        Map<String, Long> relicSetCount = relicSets.stream()
+    private Map<String, Float> updateBonusesFromRelicsAndCharacter(
+        final List<PopulatedRelic> relics, final Map<String, Float> otherBonuses) {
+        final Map<String, Float> updatedBonuses = new HashMap<>(otherBonuses);
+
+        relics.forEach(populatedRelic -> {
+            updatedBonuses.merge(populatedRelic.getMainStat(), populatedRelic.getMainStatValue(),
+                Float::sum);
+            populatedRelic.getSubStats().forEach(
+                subStats -> updatedBonuses.merge(subStats.getKey(), subStats.getValue(),
+                    Float::sum));
+        });
+
+        character.getStatBonus()
+            .forEach((stat, bonus) -> updatedBonuses.merge(stat, bonus, Float::sum));
+
+        // TODO: 05/11/2024 Get bonus from light cone as well 
+
+        return updatedBonuses;
+    }
+
+    private float calculateStatValue(final List<PopulatedRelic> relics,
+        final Map<String, Float> otherBonuses,
+        final String formula, final String stat) {
+        final Map<String, Long> relicSetCount = getRelicSetCount(relics);
+
+        applySetBonuses(relicSetCount, relics, otherBonuses, stat);
+
+        return evaluateFormula(otherBonuses, formula);
+    }
+
+    private Map<String, Long> getRelicSetCount(final List<PopulatedRelic> relics) {
+        return relics.stream()
+            .map(Relic::getSetId)
             .collect(Collectors.groupingBy(item -> item, Collectors.counting()));
+    }
+
+    private void applySetBonuses(final Map<String, Long> relicSetCount,
+        final List<PopulatedRelic> relics,
+        final Map<String, Float> otherBonuses, final String stat) {
         relicSetCount.forEach((set, count) -> {
             if (properties.getSetBonus().containsKey(set)) {
-                HashMap<Integer, ArrayList<StatBonus>> setBonus = properties.getSetBonus()
+                final HashMap<Integer, ArrayList<StatBonus>> setBonus = properties.getSetBonus()
                     .get(set);
                 for (int i = 1; i <= count; i++) {
                     if (setBonus.containsKey(i)) {
-                        ArrayList<StatBonus> bonus = setBonus.get(i);
-                        bonus.forEach(statBonus -> {
-                            if (statBonus.getCondition() == null) {
-                                otherBonuses.merge(statBonus.getStat(), statBonus.getValue(),
-                                    Float::sum);
-                            } else {
-//                            AtomicBoolean flag = new AtomicBoolean(true);
-//                            statBonus.getCondition().forEach(statBonusCondition -> {
-//                                float val = calculateStatValue(relics, otherBonuses,
-//                                    properties.getFormula().getBaseStat()
-//                                        .get(statBonusCondition.getStat()));
-//                                if (val < statBonusCondition.getValue()) {
-//                                    flag.set(false);
-//                                }
-//                            });
-//                            if (flag.get()) {
-//                                otherBonuses.merge(statBonus.getStat(), statBonus.getValue(),
-//                                    Float::sum);
-//                            }
-                                // TODO: 04/11/2024 implement the conditional bonus
-                            }
-                        });
+                        setBonus.get(i).forEach(
+                            statBonus -> applyBonusIfConditionsMet(relics, otherBonuses, statBonus,
+                                stat));
                     }
                 }
             }
         });
-        return evaluateFormula(otherBonuses, formula);
+    }
+
+    private void applyBonusIfConditionsMet(final List<PopulatedRelic> relics,
+        final Map<String, Float> otherBonuses,
+        final StatBonus statBonus, final String stat) {
+        if (Objects.equals(statBonus.getStat(), stat) && areConditionsMet(relics, otherBonuses,
+            statBonus)) {
+            otherBonuses.merge(statBonus.getStat(), statBonus.getValue(), Float::sum);
+        }
+    }
+
+    private boolean areConditionsMet(final List<PopulatedRelic> relics,
+        final Map<String, Float> otherBonuses, final StatBonus statBonus) {
+        final AtomicBoolean conditionMet = new AtomicBoolean(true);
+
+        statBonus.getCondition().forEach(statBonusCondition -> {
+            if (!isConditionMet(relics, otherBonuses, statBonusCondition)) {
+                conditionMet.set(false);
+            }
+        });
+
+        return conditionMet.get();
+    }
+
+    private boolean isConditionMet(final List<PopulatedRelic> relics,
+        final Map<String, Float> otherBonuses,
+        final StatBonusCondition statBonusCondition) {
+        final Map<String, Float> thisBonus = new HashMap<>(otherBonuses);
+        final String formula = properties.getFormula().getBaseStat()
+            .get(statBonusCondition.getStat());
+        final float value = calculateStatValue(relics, thisBonus, formula,
+            statBonusCondition.getStat());
+        return value >= statBonusCondition.getValue();
     }
 }

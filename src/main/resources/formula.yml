@@ -1,4 +1,4 @@
-crit-damage: "1 + (Crit_Rate) / 100 * (${formula.base-stat.CRIT DMG}) / 100"
+crit-damage: "1 + (Crit_Rate) / 100 * (${formula.base-stat.CRIT_DMG}) / 100"
 weaken-multiplier: "1 - WEAKEN"
 target-defence-multiplier: "(Character_Level + 20) / ((Enemy_Level + 20) * (1 - DEF_REDUCTION - DEF_IGNORE) + Character_Level + 20)"
 target-resistance-multiplier: "1 - (Enemy_Resistance / 100 - RES_PENALTY / 100)"
@@ -49,13 +49,13 @@ formula:
     ATK: "(Character_ATK + LightCone_ATK) * (1 + ATK_PERCENT / 100) + ATK_FLAT"
     DEF: "(Character_DEF + LightCone_DEF) * (1 + (DEF_PERCENT - DEF_REDUCTION) / 100) + DEF_FLAT"
     SPD: "Character_SPD * (1 + SPD_PERCENT / 100) + SPD_FLAT"
-    CRIT Rate: "Character_Base_CRIT_Rate + CRIT_RATE"
-    CRIT DMG: "Character_Base_CRIT_DMG + CRIT_DMG"
-    Energy Regeneration Rate: "ENERGY_REGENERATION_RATE + 100"
-    Effect Hit Rate: "EFFECT_HIT_RATE"
-    Effect RES: "EFFECT_RES"
-    Break Effect: "BREAK_EFFECT"
-    Outgoing Healing Boost: "OUTGOING_HEALING_BOOST"
+    CRIT_RATE: "Character_Base_CRIT_Rate + CRIT_RATE"
+    CRIT_DMG: "Character_Base_CRIT_DMG + CRIT_DMG"
+    ENERGY_REGENERATION_RATE: "ENERGY_REGENERATION_RATE + 100"
+    EFFECT_HIT_RATE: "EFFECT_HIT_RATE"
+    EFFECT_RES: "EFFECT_RES"
+    BREAK_EFFECT: "BREAK_EFFECT"
+    OUTGOING_HEALING_BOOST: "OUTGOING_HEALING_BOOST"
 
   character:
     ACHERON:

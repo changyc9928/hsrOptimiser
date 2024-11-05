@@ -11,13 +11,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EvaluationServiceImpl implements EvaluationService {
 
-    @Autowired
     Evaluator evaluator;
 
     @Override
@@ -37,7 +40,7 @@ public class EvaluationServiceImpl implements EvaluationService {
             .toList()
             .stream().findFirst();
         evaluator.setCharacter(character);
-        lightCone.ifPresent(populatedLightCone -> evaluator.setLightCone(populatedLightCone));
+        lightCone.ifPresent(evaluator::setLightCone);
         evaluator.setEnemySetup(enemySetup);
 
         ArrayList<PopulatedRelic> relics = populatedData.getRelics()

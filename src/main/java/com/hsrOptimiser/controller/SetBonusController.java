@@ -5,14 +5,17 @@ import com.hsrOptimiser.properties.Formula;
 import com.hsrOptimiser.properties.Properties;
 import java.util.ArrayList;
 import java.util.HashMap;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SetBonusController {
 
-    @Autowired
     Properties properties;
 
     @GetMapping("/set-bonus")

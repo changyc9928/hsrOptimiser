@@ -11,8 +11,10 @@ import com.hsrOptimiser.services.DataPopulatingService;
 import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.apache.tomcat.util.digester.ArrayStack;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,9 +25,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/data")
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DataInputController {
 
-    @Autowired
     DataPopulatingService dataPopulatingService;
 
     @PostMapping

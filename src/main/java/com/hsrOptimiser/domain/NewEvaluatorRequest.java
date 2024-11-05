@@ -9,4 +9,6 @@ public class NewEvaluatorRequest {
     String characterId;
     EnemySetup enemySetup;
     HashMap<String, Float> otherBonuses;
+    String targetFormula;
+    String targetName;
 }
