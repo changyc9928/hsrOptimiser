@@ -1,0 +1,93 @@
+dropdown:
+  common:
+    CRITICAL_HIT:
+      title: "Critical hit"
+      stats:
+        - "CRIT"
+      scale:
+        "no":
+          - 0
+        "average":
+          - 1
+        "yes":
+          - 2
+    TOUGHNESS_BREAK:
+      title: "Enemy toughness broken"
+      stats:
+        - "BROKEN"
+      scale:
+        "no":
+          - 0.9
+        "yes":
+          - 1
+  character:
+    "1308":
+      skill:
+        CRIMSON_KNOT_1:
+          title: "Crimson Knot(s) removed in the first hit"
+          stats:
+            - "CK_STACK_1"
+          scale:
+            "0":
+              - 0
+            "1":
+              - 2
+            "2":
+              - 3
+            "3":
+              - 4
+        CRIMSON_KNOT_2:
+          title: "Crimson Knot(s) removed in the second hit"
+          stats:
+            - "CK_STACK_2"
+          scale:
+            "0":
+              - 0
+            "1":
+              - 2
+            "2":
+              - 3
+            "3":
+              - 4
+        CRIMSON_KNOT_3:
+          title: "Crimson Knot(s) removed in the third hit"
+          stats:
+            - "CK_STACK_3"
+          scale:
+            "0":
+              - 0
+            "1":
+              - 2
+            "2":
+              - 3
+            "3":
+              - 4
+      trace:
+        ability2:
+          description: "When there are 1 or 2 Nihility characters other than Acheron in the team, the DMG dealt by Acheron's Basic ATK, Skill, and Ultimate increases to 115.00% or 160.00% of the original DMG respectively."
+          dropdowns:
+            - title: "Number of Nihility characters other than Acheron in the team"
+              stats:
+                - "THE_ABYSS"
+              scale:
+                "0":
+                  - 0
+                "1":
+                  - 115
+                "2":
+                  - 160
+        ability3:
+          description: "When the Ultimate's Rainblade hits enemy targets that have Crimson Knot, the DMG dealt by Acheron increases by 30.00%, stacking up to 3 time(s) and lasting for 3 turn(s). And when Stygian Resurge triggers, additionally deals DMG for 6 times. Each time deals Lightning DMG equal to 25.00% of Acheron's ATK to a single random enemy and is considered as Ultimate DMG."
+          dropdowns:
+            - title: "Crimson Knot damage boost stack"
+              stats:
+                - "COMMON_DMG_BOOST"
+              scale:
+                "0":
+                  - 0
+                "1":
+                  - 30
+                "2":
+                  - 60
+                "3":
+                  - 90

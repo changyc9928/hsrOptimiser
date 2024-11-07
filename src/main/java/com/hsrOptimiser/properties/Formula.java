@@ -7,6 +7,6 @@ import lombok.Data;
 public class Formula {
 
     HashMap<String, String> baseStat;
-    HashMap<String, Character> character;
+    HashMap<String, CharacterFormula> character;
 }
 

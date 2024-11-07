@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 public interface EvaluationService {
 
-    CharacterStats getCharacterStats(PopulatedData populatedData, String characterId,
-        EnemySetup enemySetup, HashMap<String, Float> otherBonuses);
+    CharacterStats evaluate(PopulatedData populatedData, String characterId,
+        EnemySetup enemySetup, HashMap<String, Float> otherBonuses, String targetName)
+        throws Exception;
 }

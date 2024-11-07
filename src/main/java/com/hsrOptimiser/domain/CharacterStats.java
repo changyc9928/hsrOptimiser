@@ -15,4 +15,6 @@ public class CharacterStats {
     ArrayList<PopulatedRelic> relics;
 
     HashMap<String, Float> stats;
+
+    float optimizationTargetValue;
 }

@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import lombok.Data;
 
 @Data
-public class OptimizationTarget {
+public class TraceDropdown {
 
-    String formula;
-    ArrayList<String> dropdownUsed;
+    String description;
+    ArrayList<Dropdown> dropdowns;
 }
 

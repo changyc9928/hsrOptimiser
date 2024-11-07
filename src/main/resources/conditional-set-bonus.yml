@@ -72,7 +72,7 @@ conditional-set-bonus:
 
   117: # Pioneer Diver of Dead Waters
     2:
-      - stat: CMN_DMG_BOOST
+      - stat: COMMON_DMG_BOOST
         value: 12
         max-stack: 1
         description: "Increases DMG dealt to enemies with debuffs by 12%."
@@ -112,7 +112,7 @@ conditional-set-bonus:
 
   #  312: # Penacony, Land of the Dreams
   #    2:
-  #      - stat: CMN_DMG_BOOST
+  #      - stat: COMMON_DMG_BOOST
   #        value: 10
   #        max-stack: 1
   #        description: "Increases DMG by 10.00% for all other allies that are of the same Type as the wearer."

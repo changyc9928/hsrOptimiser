@@ -4,8 +4,8 @@ import java.util.HashMap;
 import lombok.Data;
 
 @Data
-public class ScaleMapping {
+public class Scale {
 
-    HashMap<String, CharacterScale> character;
+    String stat;
+    HashMap<String, Float> scale;
 }
-

@@ -4,10 +4,8 @@ import java.util.HashMap;
 import lombok.Data;
 
 @Data
-public class Character {
+public class CharacterFormula {
 
     HashMap<String, OptimizationTarget> optimizationTarget;
-    HashMap<String, ScaleMapping> scaleMapping;
-    HashMap<String, Trace> trace;
 }
 

@@ -4,11 +4,10 @@ import java.util.HashMap;
 import lombok.Data;
 
 @Data
-public class NewEvaluatorRequest {
+public class EvaluateRequest {
 
     String characterId;
     EnemySetup enemySetup;
     HashMap<String, Float> otherBonuses;
-    String targetFormula;
     String targetName;
 }

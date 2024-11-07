@@ -9,6 +9,6 @@ public class Dropdown {
 
     String title;
     ArrayList<String> stats;
-    ArrayList<String> placeholders;
     HashMap<String, ArrayList<String>> scale;
 }
+

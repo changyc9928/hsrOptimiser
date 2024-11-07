@@ -6,6 +6,8 @@ spring:
       - "classpath:set-bonus.yml"
       - "classpath:conditional-set-bonus.yml"
       - "classpath:formula.yml"
+      - "classpath:dropdown.yml"
+      - "classpath:scaling.yml"
 
 server:
   servlet:

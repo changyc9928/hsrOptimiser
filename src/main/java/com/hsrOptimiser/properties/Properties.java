@@ -15,5 +15,7 @@ public class Properties {
     HashMap<String, String> relicStatMapper;
     HashMap<Integer, HashMap<String, RarityStat>> rarityStats;
     Formula formula;
+    ScaleMapping scaleMapping;
+    Dropdown dropdown;
 }
 
