@@ -20,11 +20,6 @@
       <artifactId>spring-boot-starter-web</artifactId>
       <groupId>org.springframework.boot</groupId>
     </dependency>
-    <!--		<dependency>-->
-    <!--			<groupId>org.mybatis.spring.boot</groupId>-->
-    <!--			<artifactId>mybatis-spring-boot-starter</artifactId>-->
-    <!--			<version>3.0.3</version>-->
-    <!--		</dependency>-->
     <dependency>
       <artifactId>lombok</artifactId>
       <groupId>org.projectlombok</groupId>
@@ -33,12 +28,6 @@
       <artifactId>spring-session-data-redis</artifactId>
       <groupId>org.springframework.session</groupId>
     </dependency>
-
-    <!--		<dependency>-->
-    <!--			<groupId>org.postgresql</groupId>-->
-    <!--			<artifactId>postgresql</artifactId>-->
-    <!--			<scope>runtime</scope>-->
-    <!--		</dependency>-->
     <dependency>
       <artifactId>exp4j</artifactId>
       <groupId>net.objecthunter</groupId>

@@ -1,20 +1,21 @@
 package com.hsrOptimiser.services;
 
-import com.hsrOptimiser.domain.CharacterStats;
-import com.hsrOptimiser.domain.EnemySetup;
-import com.hsrOptimiser.domain.hsrScanner.populatedData.PopulatedCharacter;
-import com.hsrOptimiser.domain.hsrScanner.populatedData.PopulatedData;
-import com.hsrOptimiser.domain.hsrScanner.populatedData.PopulatedLightCone;
-import com.hsrOptimiser.domain.hsrScanner.populatedData.PopulatedRelic;
-import com.hsrOptimiser.engine.Evaluator;
-import com.hsrOptimiser.properties.Properties;
+import com.hsrOptimiser.DTO.CharacterDamage;
+import com.hsrOptimiser.DTO.EvaluationResult;
+import com.hsrOptimiser.DTO.asagi.TItem;
+import com.hsrOptimiser.DTO.hsrScanner.HSRCharacter;
+import com.hsrOptimiser.DTO.hsrScanner.Relic;
+import com.hsrOptimiser.DTO.hsrScanner.ScannedData;
+import com.hsrOptimiser.client.AsagiClient;
+import com.hsrOptimiser.clientConfig.AsagiCharacterMetadata;
+import com.hsrOptimiser.engine.SimulatedAnnealing;
+import com.hsrOptimiser.engine.SimulatedAnnealing.SimulationResult;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,55 +23,48 @@ import org.springframework.stereotype.Service;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EvaluationServiceImpl implements EvaluationService {
 
-    Evaluator evaluator;
-    Properties properties;
+    @Autowired
+    Memory memory;
+
+    @Autowired
+    AsagiClient asagiClient;
+
+    @Autowired
+    SimulatedAnnealing simulatedAnnealing;
 
     @Override
-    public CharacterStats evaluate(PopulatedData populatedData, String characterId,
-        EnemySetup enemySetup, HashMap<String, Float> otherBonuses, String targetName)
-        throws Exception {
-        PopulatedCharacter character = populatedData.getCharacters()
-            .get(characterId);
-        Optional<PopulatedLightCone> lightCone = populatedData.getLightCones().values().stream()
-            .filter(populatedLightCone -> {
-                String location = populatedLightCone.getLocation();
-                if (location != null) {
-                    return location.equals(characterId);
-                } else {
-                    return false;
-                }
-            })
-            .toList()
-            .stream().findFirst();
-        evaluator.setCharacter(character);
-        lightCone.ifPresent(evaluator::setLightCone);
-        evaluator.setEnemySetup(enemySetup);
-        if (targetName != null) {
-            if (properties.getFormula().getBaseStat().containsKey(targetName)) {
-                evaluator.setTargetFormula(properties.getFormula().getBaseStat().get(targetName));
-            } else if (properties.getFormula().getCharacter().get(characterId)
-                .getOptimizationTarget().containsKey(targetName)) {
-                evaluator.setTargetFormula(
-                    properties.getFormula().getCharacter().get(characterId).getOptimizationTarget()
-                        .get(targetName).getFormula());
-            } else {
-                throw new NoSuchFieldException(
-                    String.format("Target formula for %s not found", targetName));
-            }
+    public EvaluationResult evaluateAsagi(String userId, List<String> characterIds,
+        List<String> fixedCharacterIds,
+        List<String> allowedToScrapRelicsCharacterIds,
+        List<String> disallowedToScrapRelicsCharacterIds) {
+        ScannedData scannedData = memory.getMemory(userId);
+        SimulationResult simulationResult = simulatedAnnealing.simulateAnnealing(scannedData,
+            asagiClient, characterIds, fixedCharacterIds, allowedToScrapRelicsCharacterIds,
+            disallowedToScrapRelicsCharacterIds);
+        EvaluationResult evaluationResult = new EvaluationResult();
+        evaluationResult.setTotalDamage(
+            simulationResult.mocResponse().getT().stream().map(TItem::getTotal)
+                .reduce(Double::sum).orElse(0D));
+        List<CharacterDamage> characterDamages = new ArrayList<>();
+        for (String characterId : characterIds) {
+            CharacterDamage characterDamage = new CharacterDamage();
+            List<Relic> relics = simulationResult.data().getRelics().stream()
+                .filter(relic -> relic.getLocation().equals(characterId)).toList();
+            characterDamage.setRelics(relics);
+            HSRCharacter hsrCharacter = scannedData.getCharacters().stream()
+                .filter(hsrCharacter1 -> hsrCharacter1.getId().equals(characterId)).findFirst()
+                .orElseThrow();
+            AsagiCharacterMetadata characterInfoDTO = AsagiCharacterMetadata.getInfoById(
+                characterId,
+                hsrCharacter.getAbilityVersion());
+            characterDamage.setTotalDamage(simulationResult.mocResponse().getT().stream()
+                .filter(tItem -> tItem.getName().equals(characterInfoDTO.getDisplayName()))
+                .map(TItem::getTotal)
+                .findFirst().orElse(0D));
+            characterDamage.setName(characterInfoDTO.name());
+            characterDamages.add(characterDamage);
         }
-        ;
-
-        ArrayList<PopulatedRelic> relics = populatedData.getRelics()
-            .values().stream()
-            .filter(populatedRelic -> {
-                String location = populatedRelic.getLocation();
-                if (location != null) {
-                    return location.equals(characterId);
-                } else {
-                    return false;
-                }
-            }).collect(
-                Collectors.toCollection(ArrayList::new));
-        return evaluator.getStatDetails(relics, otherBonuses);
+        evaluationResult.setCharacterDamage(characterDamages);
+        return evaluationResult;
     }
 }

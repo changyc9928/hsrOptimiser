@@ -1,13 +1,12 @@
 package com.hsrOptimiser.services;
 
-import com.hsrOptimiser.domain.CharacterStats;
-import com.hsrOptimiser.domain.EnemySetup;
-import com.hsrOptimiser.domain.hsrScanner.populatedData.PopulatedData;
-import java.util.HashMap;
+import com.hsrOptimiser.DTO.EvaluationResult;
+import java.util.List;
 
 public interface EvaluationService {
 
-    CharacterStats evaluate(PopulatedData populatedData, String characterId,
-        EnemySetup enemySetup, HashMap<String, Float> otherBonuses, String targetName)
-        throws Exception;
+    EvaluationResult evaluateAsagi(String userId, List<String> characterIds,
+        List<String> fixedCharacterIds,
+        List<String> allowedToScrapRelicsCharacterIds,
+        List<String> disallowedToScrapRelicsCharacterIds);
 }

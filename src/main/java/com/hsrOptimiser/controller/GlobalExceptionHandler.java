@@ -1,6 +1,6 @@
 package com.hsrOptimiser.controller;
 
-import com.hsrOptimiser.domain.ApiResponse;
+import com.hsrOptimiser.DTO.ApiResponse;
 import java.util.Arrays;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
