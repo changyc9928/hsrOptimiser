@@ -7,7 +7,7 @@ import com.hsrOptimiser.DTO.hsrScanner.HSRCharacter;
 import com.hsrOptimiser.DTO.hsrScanner.Relic;
 import com.hsrOptimiser.DTO.hsrScanner.ScannedData;
 import com.hsrOptimiser.clientConfig.AsagiCharacterMetadata;
-import com.hsrOptimiser.services.RelicBuildService;
+import com.hsrOptimiser.services.AsagiRelicBuildService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AsagiCharactersItemMapper {
 
-    private final RelicBuildService relicBuildService;
+    private final AsagiRelicBuildService relicBuildService;
 
     public CharactersItem map(ScannedData scannedData, String characterId) {
 

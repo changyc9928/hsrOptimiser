@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RelicBuildService {
+public class AsagiRelicBuildService {
 
     private static boolean isOrnamentSet(String setId) {
         return Integer.parseInt(setId) >= 300;

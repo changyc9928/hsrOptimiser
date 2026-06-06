@@ -61,7 +61,7 @@ public class EvaluationServiceImpl implements EvaluationService {
                 .filter(tItem -> tItem.getName().equals(characterInfoDTO.getDisplayName()))
                 .map(TItem::getTotal)
                 .findFirst().orElse(0D));
-            characterDamage.setName(characterInfoDTO.name());
+            characterDamage.setName(characterInfoDTO.getDisplayName());
             characterDamages.add(characterDamage);
         }
         evaluationResult.setCharacterDamage(characterDamages);
