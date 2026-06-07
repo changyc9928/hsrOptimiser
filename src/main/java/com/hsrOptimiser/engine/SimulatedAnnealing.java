@@ -14,6 +14,7 @@ import com.hsrOptimiser.clientConfig.AsagiCharacterMetadata;
 import com.hsrOptimiser.mapper.AsagiCharactersItemMapper;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -83,7 +84,6 @@ public class SimulatedAnnealing {
             .toList();
 
         List<Slot> cavernSlots = List.of(Slot.Head, Slot.Hands, Slot.Body, Slot.Feet);
-        List<Slot> planarSlots = List.of(Slot.PlanarSphere, Slot.LinkRope);
 
         double roll = ThreadLocalRandom.current().nextDouble();
         if (roll < 0.33) {
@@ -91,8 +91,9 @@ public class SimulatedAnnealing {
                 new HashSet<>(allowedToScrapRelicsCharacterIds),
                 new HashSet<>(disallowedToScrapRelicsCharacterIds));
         } else if (roll < 0.66) {
-            mutatePlanarPair(data, characterId, abilityVersion, planarSlots, currentEquipped,
-                allowedToScrapRelicsCharacterIds, disallowedToScrapRelicsCharacterIds);
+            mutatePlanarPair(data, characterId, abilityVersion, currentEquipped,
+                new HashSet<>(allowedToScrapRelicsCharacterIds),
+                new HashSet<>(disallowedToScrapRelicsCharacterIds));
         } else {
             mutateCavernSets(data, characterId, cavernSlots, currentEquipped,
                 allowedToScrapRelicsCharacterIds, disallowedToScrapRelicsCharacterIds);
@@ -159,8 +160,7 @@ public class SimulatedAnnealing {
             // Allow the source relic itself to participate in the pool.
             boolean scrapable =
                 r == sourceRelic
-                    || r.getLocation() == null
-                    || r.getLocation().isBlank()
+                    || !StringUtils.hasText(r.getLocation())
                     || (allowedToScrapRelicsCharacterIds.contains(r.getLocation())
                     && !disallowedToScrapRelicsCharacterIds.contains(r.getLocation()));
 
@@ -199,69 +199,91 @@ public class SimulatedAnnealing {
         candidate.setLocation(characterId);
     }
 
-    private static void mutatePlanarPair(ScannedData data, String characterId, int abilityVersion,
-        List<Slot> slots,
+    private static void mutatePlanarPair(
+        ScannedData data,
+        String characterId,
+        int abilityVersion,
         List<Relic> currentEquipped,
-        List<String> allowedToScrapRelicsCharacterIds,
-        List<String> disallowedToScrapRelicsCharacterIds) {
+        Set<String> allowed,
+        Set<String> disallowed) {
         ThreadLocalRandom rand = ThreadLocalRandom.current();
+        mutatePlanarPair(data, characterId, abilityVersion, currentEquipped, allowed, disallowed,
+            rand);
+    }
 
-        // 1. Snapshot original locations
-        Map<Relic, String> originalLocations = currentEquipped.stream()
-            .filter(r -> slots.contains(r.getSlot()))
-            .collect(Collectors.toMap(r -> r, Relic::getLocation, (v1, v2) -> v1));
+    static void mutatePlanarPair(
+        ScannedData data,
+        String characterId,
+        int abilityVersion,
+        List<Relic> currentEquipped,
+        Set<String> allowed,
+        Set<String> disallowed,
+        Random rand) {
 
-        // 2. Clear current equipment tags to free up room
-        originalLocations.keySet().forEach(r -> r.setLocation(""));
+        String attackMainStat =
+            AsagiCharacterMetadata
+                .getInfoById(characterId, abilityVersion)
+                .getAttackType() + " DMG Boost";
 
-        // 3. Build the pool grouping by SetId
-        Map<String, List<Relic>> planarPoolBySet = data.getRelics().stream()
-            .filter(r -> slots.contains(r.getSlot()) && r.getSetId() != null)
-            .filter(r -> (!StringUtils.hasText(r.getLocation()) || (
-                allowedToScrapRelicsCharacterIds.contains(r.getLocation()) &&
-                    !disallowedToScrapRelicsCharacterIds.contains(r.getLocation())))
-                && r.getRarity() == 5)
-            .collect(Collectors.groupingBy(Relic::getSetId));
+        // Build set pools
+        Map<String, PlanarSet> sets = new HashMap<>();
 
-        // 4. Find valid candidate sets containing both pieces
-        List<String> validSetIds = planarPoolBySet.entrySet().stream()
-            .filter(entry -> hasSlot(entry.getValue(), Slot.PlanarSphere) &&
-                hasSlot(entry.getValue(), Slot.LinkRope))
-            .map(Map.Entry::getKey)
-            .collect(Collectors.toCollection(ArrayList::new)); // Mutable array list for shuffling
+        for (Relic r : data.getRelics()) {
 
-        if (validSetIds.isEmpty()) {
-            originalLocations.forEach(Relic::setLocation);
-            return;
-        }
+            if (r.getSetId() == null || r.getRarity() != 5) {
+                continue;
+            }
 
-        // 5. Shuffle the pool of set IDs so we can step through them pseudo-randomly
-        Collections.shuffle(validSetIds, rand);
-        boolean mutationSuccessful = false;
+            if (r.getSlot() != Slot.PlanarSphere && r.getSlot() != Slot.LinkRope) {
+                continue;
+            }
 
-        for (String chosenSetId : validSetIds) {
-            List<Relic> setPool = planarPoolBySet.get(chosenSetId);
+            String loc = r.getLocation();
 
-            // Attempt to equip both slots using our updated boolean method
-            boolean sphereSuccess = equipRandomForSlot(setPool, Slot.PlanarSphere, characterId,
-                abilityVersion);
-            boolean ropeSuccess = equipRandomForSlot(setPool, Slot.LinkRope, characterId,
-                abilityVersion);
+            boolean available =
+                !StringUtils.hasText(loc)
+                    || (allowed.contains(loc) && !disallowed.contains(loc));
 
-            if (sphereSuccess && ropeSuccess) {
-                mutationSuccessful = true;
-                break; // Found a valid set matching your main stat constraints!
+            if (!available) {
+                continue;
+            }
+
+            PlanarSet set = sets.computeIfAbsent(r.getSetId(), k -> new PlanarSet());
+
+            if (r.getSlot() == Slot.PlanarSphere) {
+                set.spheres.add(r);
             } else {
-                // Partial failure clean-up: clear out anything allocated from this failed set
-                setPool.stream()
-                    .filter(r -> characterId.equals(r.getLocation()))
-                    .forEach(r -> r.setLocation(""));
+                set.ropes.add(r);
             }
         }
 
-        // 6. Absolute Fallback: If no sets had pieces with your allowed main stats, restore the original setup
-        if (!mutationSuccessful) {
-            originalLocations.forEach(Relic::setLocation);
+        List<String> validSets = new ArrayList<>();
+
+        for (var e : sets.entrySet()) {
+            if (!e.getValue().spheres.isEmpty()
+                && !e.getValue().ropes.isEmpty()) {
+                validSets.add(e.getKey());
+            }
+        }
+
+        Collections.shuffle(validSets, rand);
+
+        for (String setId : validSets) {
+
+            PlanarSet set = sets.get(setId);
+
+            EquipPlan plan = buildPlan(set, attackMainStat, rand);
+
+            if (!plan.valid()) {
+                continue;
+            }
+
+            EquipTransaction tx =
+                buildTransaction(plan, currentEquipped, characterId);
+
+            commitTransaction(tx, characterId);
+
+            return;
         }
     }
 
@@ -338,33 +360,84 @@ public class SimulatedAnnealing {
         return true;
     }
 
-    private static boolean equipRandomForSlot(List<Relic> pool, Slot slot, String characterId,
-        int abilityVersion) {
-        List<Relic> filtered = pool.stream().filter(r -> {
-            if (slot == Slot.PlanarSphere) {
-                String mainstat =
-                    AsagiCharacterMetadata.getInfoById(characterId, abilityVersion).getAttackType()
-                        + " DMG Boost";
-                return r.getSlot() == slot && List.of(mainstat, "HP", "ATK", "DEF")
-                    .contains(r.getMainstat());
-            }
-            return r.getSlot() == slot;
-        }).toList();
+    private static Relic pickSphere(List<Relic> spheres, String attackMainStat, Random rand) {
 
-        if (filtered.isEmpty()) {
-            return false; // Tell caller the mutation cannot proceed cleanly
+        Relic selected = null;
+        int count = 0;
+
+        for (Relic r : spheres) {
+
+            String stat = r.getMainstat();
+
+            if (!stat.equals(attackMainStat)
+                && !stat.equals("HP")
+                && !stat.equals("ATK")
+                && !stat.equals("DEF")) {
+                continue;
+            }
+
+            count++;
+
+            if (rand.nextInt(count) == 0) {
+                selected = r;
+            }
         }
 
-        filtered.get(ThreadLocalRandom.current().nextInt(filtered.size())).setLocation(characterId);
-        return true;
+        return selected;
+    }
+
+    private static Relic pickRope(List<Relic> ropes, Random rand) {
+        if (ropes.isEmpty()) {
+            return null;
+        }
+        return ropes.get(rand.nextInt(ropes.size()));
+    }
+
+    private static EquipPlan buildPlan(PlanarSet set, String attackMainStat, Random rand) {
+
+        EquipPlan plan = new EquipPlan();
+
+        plan.sphere = pickSphere(set.spheres, attackMainStat, rand);
+        plan.rope = pickRope(set.ropes, rand);
+
+        return plan;
+    }
+
+    private static EquipTransaction buildTransaction(
+        EquipPlan plan,
+        List<Relic> currentEquipped,
+        String characterId) {
+
+        EquipTransaction tx = new EquipTransaction();
+
+        // Unequip anything currently owned by this character in these slots
+        for (Relic r : currentEquipped) {
+            if (characterId.equals(r.getLocation())) {
+                tx.unequip.add(r);
+            }
+        }
+
+        tx.equip.add(plan.sphere);
+        tx.equip.add(plan.rope);
+
+        return tx;
+    }
+
+    private static void commitTransaction(EquipTransaction tx, String characterId) {
+
+        // 1. unequip old relics
+        for (Relic r : tx.unequip) {
+            r.setLocation("");
+        }
+
+        // 2. equip new relics
+        for (Relic r : tx.equip) {
+            r.setLocation(characterId);
+        }
     }
 
     private static void equipAnyRandom(List<Relic> pool, String characterId) {
         pool.get(ThreadLocalRandom.current().nextInt(pool.size())).setLocation(characterId);
-    }
-
-    private static boolean hasSlot(List<Relic> relics, Slot slot) {
-        return relics.stream().anyMatch(r -> r.getSlot() == slot);
     }
 
     private static TotalSubStats getTotalSubStatsOfACharacter(String characterId,
@@ -567,6 +640,28 @@ public class SimulatedAnnealing {
         request.setFixBreak(true);
 
         return request;
+    }
+
+    private static class EquipPlan {
+
+        Relic sphere;
+        Relic rope;
+
+        boolean valid() {
+            return sphere != null && rope != null;
+        }
+    }
+
+    private static class EquipTransaction {
+
+        List<Relic> unequip = new ArrayList<>();
+        List<Relic> equip = new ArrayList<>();
+    }
+
+    private static class PlanarSet {
+
+        List<Relic> spheres = new ArrayList<>();
+        List<Relic> ropes = new ArrayList<>();
     }
 
     public record SimulationResult(ScannedData data, MocResponse mocResponse) {
