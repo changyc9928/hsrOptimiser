@@ -14,9 +14,11 @@ import com.hsrOptimiser.clientConfig.AsagiCharacterMetadata;
 import com.hsrOptimiser.mapper.AsagiCharactersItemMapper;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
@@ -85,8 +87,9 @@ public class SimulatedAnnealing {
 
         double roll = ThreadLocalRandom.current().nextDouble();
         if (roll < 0.33) {
-            mutateSingleRelic(data, characterId, abilityVersion, allowedToScrapRelicsCharacterIds,
-                disallowedToScrapRelicsCharacterIds);
+            mutateSingleRelic(data, characterId, abilityVersion,
+                new HashSet<>(allowedToScrapRelicsCharacterIds),
+                new HashSet<>(disallowedToScrapRelicsCharacterIds));
         } else if (roll < 0.66) {
             mutatePlanarPair(data, characterId, abilityVersion, planarSlots, currentEquipped,
                 allowedToScrapRelicsCharacterIds, disallowedToScrapRelicsCharacterIds);
@@ -96,42 +99,104 @@ public class SimulatedAnnealing {
         }
     }
 
-    private static void mutateSingleRelic(ScannedData data, String characterId, int abilityVersion,
-        List<String> allowedToScrapRelicsCharacterIds,
-        List<String> disallowedToScrapRelicsCharacterIds) {
-        List<Relic> characterRelics = data.getRelics().stream()
-            .filter(r -> characterId.equals(r.getLocation()))
-            .toList();
-        if (characterRelics.isEmpty()) {
+    static void mutateSingleRelic(
+        ScannedData data,
+        String characterId,
+        int abilityVersion,
+        Set<String> allowedToScrapRelicsCharacterIds,
+        Set<String> disallowedToScrapRelicsCharacterIds) {
+
+        mutateSingleRelic(
+            data,
+            characterId,
+            abilityVersion,
+            allowedToScrapRelicsCharacterIds,
+            disallowedToScrapRelicsCharacterIds,
+            ThreadLocalRandom.current());
+    }
+
+    static void mutateSingleRelic(
+        ScannedData data,
+        String characterId,
+        int abilityVersion,
+        Set<String> allowedToScrapRelicsCharacterIds,
+        Set<String> disallowedToScrapRelicsCharacterIds,
+        Random rand) {
+
+        List<Relic> relics = data.getRelics();
+
+        Relic sourceRelic = null;
+        int ownedCount = 0;
+
+        for (Relic r : relics) {
+            if (characterId.equals(r.getLocation())) {
+                ownedCount++;
+                if (rand.nextInt(ownedCount) == 0) {
+                    sourceRelic = r;
+                }
+            }
+        }
+
+        if (sourceRelic == null) {
             return;
         }
 
-        ThreadLocalRandom rand = ThreadLocalRandom.current();
-        Relic relic = characterRelics.get(rand.nextInt(characterRelics.size()));
-        String setId = relic.getSetId();
-        Slot slot = relic.getSlot();
+        String setId = sourceRelic.getSetId();
+        Slot slot = sourceRelic.getSlot();
 
-        relic.setLocation("");
         String mainstat =
-            AsagiCharacterMetadata.getInfoById(characterId, abilityVersion).getAttackType()
-                + " DMG Boost";
+            AsagiCharacterMetadata.getInfoById(characterId, abilityVersion)
+                .getAttackType() + " DMG Boost";
 
-        List<Relic> pool = data.getRelics().stream()
-            .filter(r -> (r.getLocation() == null || r.getLocation().isBlank()
-                || (allowedToScrapRelicsCharacterIds.contains(r.getLocation())
-                && !disallowedToScrapRelicsCharacterIds.contains(r.getLocation())))
-                && r.getSlot() == slot
-                && (slot != Slot.PlanarSphere || List.of(mainstat, "ATK", "DEF", "HP")
-                .contains(r.getMainstat()))
-                && r.getRarity() == 5
-                && Objects.equals(r.getSetId(), setId))
-            .toList();
+        Set<String> allowedSphereStats =
+            Set.of(mainstat, "ATK", "DEF", "HP");
 
-        if (!pool.isEmpty()) {
-            pool.get(rand.nextInt(pool.size())).setLocation(characterId);
-        } else {
-            relic.setLocation(characterId); // Rollback if pool is empty
+        Relic candidate = null;
+        int matches = 0;
+
+        for (Relic r : relics) {
+
+            // Allow the source relic itself to participate in the pool.
+            boolean scrapable =
+                r == sourceRelic
+                    || r.getLocation() == null
+                    || r.getLocation().isBlank()
+                    || (allowedToScrapRelicsCharacterIds.contains(r.getLocation())
+                    && !disallowedToScrapRelicsCharacterIds.contains(r.getLocation()));
+
+            if (!scrapable) {
+                continue;
+            }
+
+            if (r.getSlot() != slot) {
+                continue;
+            }
+
+            if (slot == Slot.PlanarSphere
+                && !allowedSphereStats.contains(r.getMainstat())) {
+                continue;
+            }
+
+            if (r.getRarity() != 5) {
+                continue;
+            }
+
+            if (!Objects.equals(r.getSetId(), setId)) {
+                continue;
+            }
+
+            matches++;
+            if (rand.nextInt(matches) == 0) {
+                candidate = r;
+            }
         }
+
+        if (candidate == null || candidate == sourceRelic) {
+            return;
+        }
+
+        sourceRelic.setLocation("");
+        candidate.setLocation(characterId);
     }
 
     private static void mutatePlanarPair(ScannedData data, String characterId, int abilityVersion,
