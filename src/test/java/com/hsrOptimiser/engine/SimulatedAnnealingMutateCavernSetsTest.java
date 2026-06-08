@@ -1,6 +1,8 @@
 package com.hsrOptimiser.engine;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.lenient;
 
 import com.hsrOptimiser.DTO.hsrScanner.Relic;
 import com.hsrOptimiser.DTO.hsrScanner.ScannedData;
@@ -9,11 +11,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class SimulatedAnnealingMutateCavernSetsTest {
 
     private static final String CHARACTER_ID = "1001";
+
+    @Mock
+    private Random random;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(random.nextInt(anyInt())).thenReturn(0);
+    }
 
     private Relic relic(
         String setId,
@@ -66,7 +81,7 @@ class SimulatedAnnealingMutateCavernSetsTest {
             List.of(),
             Set.of(),
             Set.of(),
-            new Random(0)
+            random
         );
 
         long equippedCount =
@@ -104,7 +119,7 @@ class SimulatedAnnealingMutateCavernSetsTest {
             List.of(oldHead, oldHands, oldBody, oldFeet),
             Set.of(),
             Set.of(),
-            new Random(0)
+            random
         );
 
         assertThat(oldHead.getLocation()).isEmpty();
@@ -137,7 +152,7 @@ class SimulatedAnnealingMutateCavernSetsTest {
             List.of(),
             Set.of(),
             Set.of(),
-            new Random(0)
+            random
         );
 
         assertThat(
@@ -166,7 +181,7 @@ class SimulatedAnnealingMutateCavernSetsTest {
             List.of(),
             Set.of(),
             Set.of(),
-            new Random(0)
+            random
         );
 
         assertThat(
@@ -202,7 +217,7 @@ class SimulatedAnnealingMutateCavernSetsTest {
             List.of(),
             Set.of("OTHER"),
             Set.of(),
-            new Random(0)
+            random
         );
 
         long equippedCount =
@@ -234,7 +249,7 @@ class SimulatedAnnealingMutateCavernSetsTest {
             List.of(),
             Set.of("OTHER"),
             Set.of("OTHER"),
-            new Random(0)
+            random
         );
 
         assertThat(
@@ -265,7 +280,7 @@ class SimulatedAnnealingMutateCavernSetsTest {
             List.of(),
             Set.of(),
             Set.of(),
-            new Random(0)
+            random
         );
 
         assertThat(
@@ -293,7 +308,7 @@ class SimulatedAnnealingMutateCavernSetsTest {
             List.of(),
             Set.of(),
             Set.of(),
-            new Random(0)
+            random
         );
 
         assertThat(
@@ -320,7 +335,7 @@ class SimulatedAnnealingMutateCavernSetsTest {
             List.of(head, hands, body, feet),
             Set.of(),
             Set.of(),
-            new Random(0)
+            random
         );
 
         assertThat(head.getLocation()).isEqualTo(CHARACTER_ID);
@@ -348,7 +363,7 @@ class SimulatedAnnealingMutateCavernSetsTest {
             List.of(),
             Set.of(),
             Set.of(),
-            new Random(0)
+            random
         );
 
         long equipped =

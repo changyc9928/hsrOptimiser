@@ -19,7 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class MutateSingleRelicTests {
+public class SimulatedAnnealingMutateSingleRelicTests {
 
     @Mock
     Random rand;
@@ -33,14 +33,13 @@ public class MutateSingleRelicTests {
         String location,
         Slot slot,
         String setId,
-        String mainstat,
         int rarity) {
 
         Relic r = new Relic();
         r.setLocation(location);
         r.setSlot(slot);
         r.setSetId(setId);
-        r.setMainstat(mainstat);
+        r.setMainstat("HP");
         r.setRarity(rarity);
         return r;
     }
@@ -58,7 +57,6 @@ public class MutateSingleRelicTests {
             "",
             Slot.Head,
             "setA",
-            "HP",
             5);
 
         ScannedData data = data(relic);
@@ -77,7 +75,7 @@ public class MutateSingleRelicTests {
     void doesNothingWhenSourceIsOnlyCandidate() {
 
         Relic source =
-            relic("8010", Slot.Head, "setA", "HP", 5);
+            relic("8010", Slot.Head, "setA", 5);
 
         ScannedData data = data(source);
 
@@ -94,10 +92,10 @@ public class MutateSingleRelicTests {
     void swapsOwnershipWithMatchingUnownedRelic() {
 
         Relic source =
-            relic("8010", Slot.Head, "setA", "HP", 5);
+            relic("8010", Slot.Head, "setA", 5);
 
         Relic candidate =
-            relic("", Slot.Head, "setA", "HP", 5);
+            relic("", Slot.Head, "setA", 5);
 
         ScannedData data = data(source, candidate);
 
@@ -116,10 +114,10 @@ public class MutateSingleRelicTests {
     void ignoresRelicsWithDifferentSlot() {
 
         Relic source =
-            relic("8010", Slot.Head, "setA", "HP", 5);
+            relic("8010", Slot.Head, "setA", 5);
 
         Relic candidate =
-            relic("", Slot.Hands, "setA", "HP", 5);
+            relic("", Slot.Hands, "setA", 5);
 
         ScannedData data = data(source, candidate);
 
@@ -138,10 +136,10 @@ public class MutateSingleRelicTests {
     void ignoresRelicsFromDifferentSet() {
 
         Relic source =
-            relic("8010", Slot.Head, "setA", "HP", 5);
+            relic("8010", Slot.Head, "setA", 5);
 
         Relic candidate =
-            relic("", Slot.Head, "setB", "HP", 5);
+            relic("", Slot.Head, "setB", 5);
 
         ScannedData data = data(source, candidate);
 
@@ -160,10 +158,10 @@ public class MutateSingleRelicTests {
     void ignoresNonFiveStarRelics() {
 
         Relic source =
-            relic("8010", Slot.Head, "setA", "HP", 5);
+            relic("8010", Slot.Head, "setA", 5);
 
         Relic candidate =
-            relic("", Slot.Head, "setA", "HP", 4);
+            relic("", Slot.Head, "setA", 4);
 
         ScannedData data = data(source, candidate);
 
@@ -182,10 +180,10 @@ public class MutateSingleRelicTests {
     void canScrapRelicOwnedByAllowedCharacter() {
 
         Relic source =
-            relic("8010", Slot.Head, "setA", "HP", 5);
+            relic("8010", Slot.Head, "setA", 5);
 
         Relic candidate =
-            relic("char2", Slot.Head, "setA", "HP", 5);
+            relic("char2", Slot.Head, "setA", 5);
 
         mutateSingleRelic(
             data(source, candidate),
@@ -202,10 +200,10 @@ public class MutateSingleRelicTests {
     void disallowedCharacterCannotBeScrappedEvenIfAllowed() {
 
         Relic source =
-            relic("8010", Slot.Head, "setA", "HP", 5);
+            relic("8010", Slot.Head, "setA", 5);
 
         Relic candidate =
-            relic("char2", Slot.Head, "setA", "HP", 5);
+            relic("char2", Slot.Head, "setA", 5);
 
         mutateSingleRelic(
             data(source, candidate),
@@ -222,10 +220,10 @@ public class MutateSingleRelicTests {
     void cannotScrapRelicOwnedByOtherCharacter() {
 
         Relic source =
-            relic("8010", Slot.Head, "setA", "HP", 5);
+            relic("8010", Slot.Head, "setA", 5);
 
         Relic candidate =
-            relic("char2", Slot.Head, "setA", "HP", 5);
+            relic("char2", Slot.Head, "setA", 5);
 
         mutateSingleRelic(
             data(source, candidate),
@@ -242,10 +240,10 @@ public class MutateSingleRelicTests {
     void blankLocationRelicsAreScrapable() {
 
         Relic source =
-            relic("8010", Slot.Head, "setA", "HP", 5);
+            relic("8010", Slot.Head, "setA", 5);
 
         Relic candidate =
-            relic("   ", Slot.Head, "setA", "HP", 5);
+            relic("   ", Slot.Head, "setA", 5);
 
         mutateSingleRelic(
             data(source, candidate),
@@ -262,10 +260,10 @@ public class MutateSingleRelicTests {
     void nullLocationRelicsAreScrapable() {
 
         Relic source =
-            relic("8010", Slot.Head, "setA", "HP", 5);
+            relic("8010", Slot.Head, "setA", 5);
 
         Relic candidate =
-            relic(null, Slot.Head, "setA", "HP", 5);
+            relic(null, Slot.Head, "setA", 5);
 
         mutateSingleRelic(
             data(source, candidate),
@@ -281,10 +279,10 @@ public class MutateSingleRelicTests {
     @Test
     void planarSphereAllowsAttackTypeDamageBoost() {
         Relic source =
-            relic("8010", Slot.PlanarSphere, "setA", "HP", 5);
+            relic("8010", Slot.PlanarSphere, "setA", 5);
 
         Relic candidate =
-            relic(null, Slot.PlanarSphere, "setA", "HP", 5);
+            relic(null, Slot.PlanarSphere, "setA", 5);
 
         candidate.setMainstat("Lightning DMG Boost");
 
@@ -302,10 +300,10 @@ public class MutateSingleRelicTests {
     @Test
     void planarSphereRejectsOtherMainstats() {
         Relic source =
-            relic("8010", Slot.PlanarSphere, "setA", "HP", 5);
+            relic("8010", Slot.PlanarSphere, "setA", 5);
 
         Relic candidate =
-            relic(null, Slot.PlanarSphere, "setA", "HP", 5);
+            relic(null, Slot.PlanarSphere, "setA", 5);
 
         candidate.setMainstat("Crit Rate");
 
@@ -324,10 +322,10 @@ public class MutateSingleRelicTests {
     void returnsWhenNoEligibleCandidateExists() {
 
         Relic source =
-            relic("8010", Slot.Head, "setA", "HP", 5);
+            relic("8010", Slot.Head, "setA", 5);
 
         Relic candidate =
-            relic("", Slot.Head, "setB", "HP", 5);
+            relic("", Slot.Head, "setB", 5);
 
         mutateSingleRelic(
             data(source, candidate),

@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.lenient;
 
 import com.hsrOptimiser.DTO.hsrScanner.Relic;
 import com.hsrOptimiser.DTO.hsrScanner.ScannedData;
@@ -13,22 +15,36 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-class MutatePlanarPairTest {
+@ExtendWith(MockitoExtension.class)
+class SimulatedAnnealingMutatePlanarPairTest {
 
     private static final String CHAR_ID = "8010";
+
+    @Mock
+    private Random random;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(random.nextInt(anyInt())).thenReturn(0);
+    }
 
     // -------------------------
     // Helpers (ONLY test utilities)
     // -------------------------
 
-    private Relic relic(String setId, Slot slot, int rarity, String stat, String loc) {
+    private Relic relic(String setId, Slot slot, int rarity, String loc) {
         Relic r = new Relic();
         r.setSetId(setId);
         r.setSlot(slot);
         r.setRarity(rarity);
-        r.setMainstat(stat);
+        r.setMainstat("ATK");
         r.setLocation(loc);
         return r;
     }
@@ -39,17 +55,13 @@ class MutatePlanarPairTest {
         return d;
     }
 
-    private Random seeded(int seed) {
-        return new Random(seed);
-    }
-
     // -------------------------
     // 1. Filtering logic
     // -------------------------
 
     @Test
     void ignores_nonFiveStar_relics() {
-        Relic r = relic("A", Slot.PlanarSphere, 4, "ATK", "");
+        Relic r = relic("A", Slot.PlanarSphere, 4, "");
 
         mutatePlanarPair(
             data(List.of(r)),
@@ -58,7 +70,7 @@ class MutatePlanarPairTest {
             new ArrayList<>(),
             Set.of(),
             Set.of(),
-            seeded(1)
+            random
         );
 
         assertEquals("", r.getLocation());
@@ -66,7 +78,7 @@ class MutatePlanarPairTest {
 
     @Test
     void ignores_wrong_slot() {
-        Relic r = relic("A", Slot.Head, 5, "ATK", "");
+        Relic r = relic("A", Slot.Head, 5, "");
 
         mutatePlanarPair(
             data(List.of(r)),
@@ -75,7 +87,7 @@ class MutatePlanarPairTest {
             new ArrayList<>(),
             Set.of(),
             Set.of(),
-            seeded(1)
+            random
         );
 
         assertEquals("", r.getLocation());
@@ -83,7 +95,7 @@ class MutatePlanarPairTest {
 
     @Test
     void excludes_disallowed_location() {
-        Relic r = relic("A", Slot.PlanarSphere, 5, "ATK", "BLOCKED");
+        Relic r = relic("A", Slot.PlanarSphere, 5, "BLOCKED");
 
         mutatePlanarPair(
             data(List.of(r)),
@@ -92,7 +104,7 @@ class MutatePlanarPairTest {
             new ArrayList<>(),
             Set.of(),
             Set.of("BLOCKED"),
-            seeded(1)
+            random
         );
 
         assertEquals("BLOCKED", r.getLocation());
@@ -104,8 +116,8 @@ class MutatePlanarPairTest {
 
     @Test
     void ignores_set_missing_rope_or_sphere() {
-        Relic sphereOnly = relic("A", Slot.PlanarSphere, 5, "ATK", "");
-        Relic ropeOnly = relic("B", Slot.LinkRope, 5, "ATK", "");
+        Relic sphereOnly = relic("A", Slot.PlanarSphere, 5, "");
+        Relic ropeOnly = relic("B", Slot.LinkRope, 5, "");
 
         mutatePlanarPair(
             data(List.of(sphereOnly, ropeOnly)),
@@ -114,7 +126,7 @@ class MutatePlanarPairTest {
             new ArrayList<>(),
             Set.of(),
             Set.of(),
-            seeded(1)
+            random
         );
 
         assertEquals("", sphereOnly.getLocation());
@@ -127,11 +139,11 @@ class MutatePlanarPairTest {
 
     @Test
     void equips_new_and_unequips_old() {
-        Relic oldSphere = relic("OLD", Slot.PlanarSphere, 5, "ATK", CHAR_ID);
-        Relic oldRope = relic("OLD", Slot.LinkRope, 5, "ATK", CHAR_ID);
+        Relic oldSphere = relic("OLD", Slot.PlanarSphere, 5, CHAR_ID);
+        Relic oldRope = relic("OLD", Slot.LinkRope, 5, CHAR_ID);
 
-        Relic newSphere = relic("NEW", Slot.PlanarSphere, 5, "ATK", "");
-        Relic newRope = relic("NEW", Slot.LinkRope, 5, "ATK", "");
+        Relic newSphere = relic("NEW", Slot.PlanarSphere, 5, "");
+        Relic newRope = relic("NEW", Slot.LinkRope, 5, "");
 
         mutatePlanarPair(
             data(List.of(newSphere, newRope)),
@@ -140,7 +152,7 @@ class MutatePlanarPairTest {
             new ArrayList<>(List.of(oldSphere, oldRope)),
             Set.of(),
             Set.of(),
-            seeded(1)
+            random
         );
 
         assertEquals("", oldSphere.getLocation());
@@ -156,7 +168,7 @@ class MutatePlanarPairTest {
 
     @Test
     void no_valid_sets_results_in_no_change() {
-        Relic r = relic("A", Slot.Head, 5, "ATK", "");
+        Relic r = relic("A", Slot.Head, 5, "");
 
         mutatePlanarPair(
             data(List.of(r)),
@@ -165,7 +177,7 @@ class MutatePlanarPairTest {
             new ArrayList<>(),
             Set.of(),
             Set.of(),
-            seeded(1)
+            random
         );
 
         assertEquals("", r.getLocation());
@@ -177,11 +189,11 @@ class MutatePlanarPairTest {
 
     @Test
     void only_first_valid_set_is_used() {
-        Relic aSphere = relic("A", Slot.PlanarSphere, 5, "ATK", "");
-        Relic aRope = relic("A", Slot.LinkRope, 5, "ATK", "");
+        Relic aSphere = relic("A", Slot.PlanarSphere, 5, "");
+        Relic aRope = relic("A", Slot.LinkRope, 5, "");
 
-        Relic bSphere = relic("B", Slot.PlanarSphere, 5, "ATK", "");
-        Relic bRope = relic("B", Slot.LinkRope, 5, "ATK", "");
+        Relic bSphere = relic("B", Slot.PlanarSphere, 5, "");
+        Relic bRope = relic("B", Slot.LinkRope, 5, "");
 
         mutatePlanarPair(
             data(List.of(aSphere, aRope, bSphere, bRope)),
@@ -190,12 +202,11 @@ class MutatePlanarPairTest {
             new ArrayList<>(),
             Set.of(),
             Set.of(),
-            seeded(1)
+            random
         );
 
         long equipped =
-            List.of(aSphere, aRope, bSphere, bRope)
-                .stream()
+            Stream.of(aSphere, aRope, bSphere, bRope)
                 .filter(r -> CHAR_ID.equals(r.getLocation()))
                 .count();
 
@@ -208,7 +219,7 @@ class MutatePlanarPairTest {
 
     @Test
     void respects_allowed_and_disallowed_sets() {
-        Relic r = relic("A", Slot.PlanarSphere, 5, "ATK", "OK");
+        Relic r = relic("A", Slot.PlanarSphere, 5, "OK");
 
         mutatePlanarPair(
             data(List.of(r)),
@@ -217,7 +228,7 @@ class MutatePlanarPairTest {
             new ArrayList<>(),
             Set.of("OK"),
             Set.of(),
-            seeded(1)
+            random
         );
 
         // may or may not equip depending on rope existence
@@ -233,8 +244,8 @@ class MutatePlanarPairTest {
         List<Relic> relics = new ArrayList<>();
 
         for (int i = 0; i < 200; i++) {
-            relics.add(relic("A", Slot.PlanarSphere, 5, "ATK", ""));
-            relics.add(relic("A", Slot.LinkRope, 5, "ATK", ""));
+            relics.add(relic("A", Slot.PlanarSphere, 5, ""));
+            relics.add(relic("A", Slot.LinkRope, 5, ""));
         }
 
         assertDoesNotThrow(() ->
@@ -245,7 +256,7 @@ class MutatePlanarPairTest {
                 new ArrayList<>(),
                 Set.of(),
                 Set.of(),
-                seeded(42)
+                random
             )
         );
     }
@@ -253,11 +264,11 @@ class MutatePlanarPairTest {
     @Test
     void transaction_is_atomic_from_user_perspective() {
 
-        Relic oldSphere = relic("OLD", Slot.PlanarSphere, 5, "ATK", CHAR_ID);
-        Relic oldRope = relic("OLD", Slot.LinkRope, 5, "ATK", CHAR_ID);
+        Relic oldSphere = relic("OLD", Slot.PlanarSphere, 5, CHAR_ID);
+        Relic oldRope = relic("OLD", Slot.LinkRope, 5, CHAR_ID);
 
-        Relic newSphere = relic("NEW", Slot.PlanarSphere, 5, "ATK", "");
-        Relic newRope = relic("NEW", Slot.LinkRope, 5, "ATK", "");
+        Relic newSphere = relic("NEW", Slot.PlanarSphere, 5, "");
+        Relic newRope = relic("NEW", Slot.LinkRope, 5, "");
 
         List<Relic> equipped = new ArrayList<>(List.of(oldSphere, oldRope));
 
@@ -268,7 +279,7 @@ class MutatePlanarPairTest {
             equipped,
             Set.of(),
             Set.of(),
-            new Random(1)
+            random
         );
 
         // AFTER: either fully swapped or unchanged — no half state allowed
@@ -287,8 +298,8 @@ class MutatePlanarPairTest {
     @Test
     void never_results_in_partial_equipment() {
 
-        Relic sphere = relic("NEW", Slot.PlanarSphere, 5, "ATK", "");
-        Relic rope = relic("NEW", Slot.LinkRope, 5, "ATK", "");
+        Relic sphere = relic("NEW", Slot.PlanarSphere, 5, "");
+        Relic rope = relic("NEW", Slot.LinkRope, 5, "");
 
         mutatePlanarPair(
             data(List.of(sphere, rope)),
@@ -297,7 +308,7 @@ class MutatePlanarPairTest {
             new ArrayList<>(),
             Set.of(),
             Set.of(),
-            new Random(1)
+            random
         );
 
         boolean sphereEquipped = CHAR_ID.equals(sphere.getLocation());
@@ -310,19 +321,19 @@ class MutatePlanarPairTest {
     @Test
     void mutation_is_idempotent_under_same_state() {
 
-        Relic sphere = relic("A", Slot.PlanarSphere, 5, "ATK", "");
-        Relic rope = relic("A", Slot.LinkRope, 5, "ATK", "");
+        Relic sphere = relic("A", Slot.PlanarSphere, 5, "");
+        Relic rope = relic("A", Slot.LinkRope, 5, "");
 
         ScannedData d = data(List.of(sphere, rope));
 
-        Random r = new Random(1);
+        Random r = random;
 
         mutatePlanarPair(d, CHAR_ID, 1, new ArrayList<>(), Set.of(), Set.of(), r);
 
         String firstSphere = sphere.getLocation();
         String firstRope = rope.getLocation();
 
-        mutatePlanarPair(d, CHAR_ID, 1, new ArrayList<>(), Set.of(), Set.of(), new Random(1));
+        mutatePlanarPair(d, CHAR_ID, 1, new ArrayList<>(), Set.of(), Set.of(), random);
 
         assertEquals(firstSphere, sphere.getLocation());
         assertEquals(firstRope, rope.getLocation());
@@ -331,9 +342,9 @@ class MutatePlanarPairTest {
     @Test
     void does_not_unequip_without_successful_replacement() {
 
-        Relic oldSphere = relic("OLD", Slot.PlanarSphere, 5, "ATK", CHAR_ID);
+        Relic oldSphere = relic("OLD", Slot.PlanarSphere, 5, CHAR_ID);
 
-        Relic onlySphere = relic("A", Slot.PlanarSphere, 5, "ATK", "");
+        Relic onlySphere = relic("A", Slot.PlanarSphere, 5, "");
 
         mutatePlanarPair(
             data(List.of(onlySphere)), // missing rope → invalid set
@@ -342,7 +353,7 @@ class MutatePlanarPairTest {
             new ArrayList<>(List.of(oldSphere)),
             Set.of(),
             Set.of(),
-            new Random(1)
+            random
         );
 
         assertEquals(CHAR_ID, oldSphere.getLocation());
