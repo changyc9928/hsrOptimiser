@@ -9,7 +9,7 @@ import com.hsrOptimiser.DTO.hsrScanner.ScannedData;
 import com.hsrOptimiser.client.AsagiClient;
 import com.hsrOptimiser.clientConfig.AsagiCharacterMetadata;
 import com.hsrOptimiser.engine.SimulatedAnnealing;
-import com.hsrOptimiser.engine.SimulatedAnnealing.SimulationResult;
+import com.hsrOptimiser.engine.SimulationResult;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -34,33 +34,33 @@ public class EvaluationServiceImpl implements EvaluationService {
 
     @Override
     public EvaluationResult evaluateAsagi(String userId, List<String> characterIds,
-        List<String> fixedCharacterIds,
-        List<String> allowedToScrapRelicsCharacterIds,
-        List<String> disallowedToScrapRelicsCharacterIds) {
+            List<String> fixedCharacterIds,
+            List<String> allowedToScrapRelicsCharacterIds,
+            List<String> disallowedToScrapRelicsCharacterIds) {
         ScannedData scannedData = memory.getMemory(userId);
         SimulationResult simulationResult = simulatedAnnealing.simulateAnnealing(scannedData,
-            asagiClient, characterIds, fixedCharacterIds, allowedToScrapRelicsCharacterIds,
-            disallowedToScrapRelicsCharacterIds);
+                asagiClient, characterIds, fixedCharacterIds, allowedToScrapRelicsCharacterIds,
+                disallowedToScrapRelicsCharacterIds);
         EvaluationResult evaluationResult = new EvaluationResult();
         evaluationResult.setTotalDamage(
-            simulationResult.mocResponse().getT().stream().map(TItem::getTotal)
-                .reduce(Double::sum).orElse(0D));
+                simulationResult.mocResponse().getT().stream().map(TItem::getTotal)
+                        .reduce(Double::sum).orElse(0D));
         List<CharacterDamage> characterDamages = new ArrayList<>();
         for (String characterId : characterIds) {
             CharacterDamage characterDamage = new CharacterDamage();
             List<Relic> relics = simulationResult.data().getRelics().stream()
-                .filter(relic -> relic.getLocation().equals(characterId)).toList();
+                    .filter(relic -> relic.getLocation().equals(characterId)).toList();
             characterDamage.setRelics(relics);
             HSRCharacter hsrCharacter = scannedData.getCharacters().stream()
-                .filter(hsrCharacter1 -> hsrCharacter1.getId().equals(characterId)).findFirst()
-                .orElseThrow();
+                    .filter(hsrCharacter1 -> hsrCharacter1.getId().equals(characterId)).findFirst()
+                    .orElseThrow();
             AsagiCharacterMetadata characterInfoDTO = AsagiCharacterMetadata.getInfoById(
-                characterId,
-                hsrCharacter.getAbilityVersion());
+                    characterId,
+                    hsrCharacter.getAbilityVersion());
             characterDamage.setTotalDamage(simulationResult.mocResponse().getT().stream()
-                .filter(tItem -> tItem.getName().equals(characterInfoDTO.getDisplayName()))
-                .map(TItem::getTotal)
-                .findFirst().orElse(0D));
+                    .filter(tItem -> tItem.getName().equals(characterInfoDTO.getDisplayName()))
+                    .map(TItem::getTotal)
+                    .findFirst().orElse(0D));
             characterDamage.setName(characterInfoDTO.getDisplayName());
             characterDamages.add(characterDamage);
         }

@@ -1,14 +1,13 @@
 package com.hsrOptimiser.engine;
 
-import static com.hsrOptimiser.engine.SimulatedAnnealing.mutateSingleRelic;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.lenient;
 
 import com.hsrOptimiser.DTO.hsrScanner.Relic;
 import com.hsrOptimiser.DTO.hsrScanner.ScannedData;
 import com.hsrOptimiser.DTO.hsrScanner.Slot;
+import com.hsrOptimiser.engine.strategies.SingleRelicMutationStrategy;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -24,9 +23,12 @@ public class SimulatedAnnealingMutateSingleRelicTests {
     @Mock
     Random rand;
 
+    private SingleRelicMutationStrategy strategy;
+
     @BeforeEach
     void setup() {
         lenient().when(rand.nextInt(anyInt())).thenReturn(0);
+        strategy = new SingleRelicMutationStrategy();
     }
 
     private Relic relic(
@@ -48,6 +50,13 @@ public class SimulatedAnnealingMutateSingleRelicTests {
         ScannedData d = new ScannedData();
         d.setRelics(List.of(relics));
         return d;
+    }
+
+    private void mutateSingleRelic(ScannedData data, String characterId, int abilityVersion,
+        Set<String> allowed, Set<String> disallowed, Random random) {
+        MutationContext context = new MutationContext(
+            characterId, abilityVersion, allowed, disallowed, random);
+        strategy.mutate(data, context);
     }
 
     @Test
@@ -133,7 +142,7 @@ public class SimulatedAnnealingMutateSingleRelicTests {
     }
 
     @Test
-    void ignoresRelicsFromDifferentSet() {
+    void ignoresRelicsWithDifferentSet() {
 
         Relic source =
             relic("8010", Slot.Head, "setA", 5);
@@ -155,7 +164,7 @@ public class SimulatedAnnealingMutateSingleRelicTests {
     }
 
     @Test
-    void ignoresNonFiveStarRelics() {
+    void ignoresLowerRarityRelics() {
 
         Relic source =
             relic("8010", Slot.Head, "setA", 5);
@@ -177,7 +186,7 @@ public class SimulatedAnnealingMutateSingleRelicTests {
     }
 
     @Test
-    void canScrapRelicOwnedByAllowedCharacter() {
+    void canScrapRelicsFromAllowedCharacters() {
 
         Relic source =
             relic("8010", Slot.Head, "setA", 5);
@@ -185,8 +194,10 @@ public class SimulatedAnnealingMutateSingleRelicTests {
         Relic candidate =
             relic("char2", Slot.Head, "setA", 5);
 
+        ScannedData data = data(source, candidate);
+
         mutateSingleRelic(
-            data(source, candidate),
+            data,
             "8010",
             0,
             Set.of("char2"),
@@ -197,7 +208,7 @@ public class SimulatedAnnealingMutateSingleRelicTests {
     }
 
     @Test
-    void disallowedCharacterCannotBeScrappedEvenIfAllowed() {
+    void cannotScrapRelicsFromDisallowedCharacters() {
 
         Relic source =
             relic("8010", Slot.Head, "setA", 5);
@@ -205,8 +216,10 @@ public class SimulatedAnnealingMutateSingleRelicTests {
         Relic candidate =
             relic("char2", Slot.Head, "setA", 5);
 
+        ScannedData data = data(source, candidate);
+
         mutateSingleRelic(
-            data(source, candidate),
+            data,
             "8010",
             0,
             Set.of("char2"),
@@ -217,118 +230,38 @@ public class SimulatedAnnealingMutateSingleRelicTests {
     }
 
     @Test
-    void cannotScrapRelicOwnedByOtherCharacter() {
+    void sourceRelicCanBeItsOwnCandidate() {
 
         Relic source =
             relic("8010", Slot.Head, "setA", 5);
 
-        Relic candidate =
-            relic("char2", Slot.Head, "setA", 5);
+        ScannedData data = data(source);
 
         mutateSingleRelic(
-            data(source, candidate),
+            data,
             "8010",
             0,
             Set.of(),
             Set.of(), rand);
 
         assertEquals("8010", source.getLocation());
-        assertEquals("char2", candidate.getLocation());
     }
 
     @Test
-    void blankLocationRelicsAreScrapable() {
+    void ignoresSphereWithWrongMainstat() {
 
-        Relic source =
-            relic("8010", Slot.Head, "setA", 5);
-
-        Relic candidate =
-            relic("   ", Slot.Head, "setA", 5);
-
-        mutateSingleRelic(
-            data(source, candidate),
-            "8010",
-            0,
-            Set.of(),
-            Set.of(), rand);
-
-        assertEquals("8010", candidate.getLocation());
-        assertEquals("", source.getLocation());
-    }
-
-    @Test
-    void nullLocationRelicsAreScrapable() {
-
-        Relic source =
-            relic("8010", Slot.Head, "setA", 5);
-
-        Relic candidate =
-            relic(null, Slot.Head, "setA", 5);
-
-        mutateSingleRelic(
-            data(source, candidate),
-            "8010",
-            0,
-            Set.of(),
-            Set.of(), rand);
-
-        assertEquals("8010", candidate.getLocation());
-        assertEquals("", source.getLocation());
-    }
-
-    @Test
-    void planarSphereAllowsAttackTypeDamageBoost() {
         Relic source =
             relic("8010", Slot.PlanarSphere, "setA", 5);
+        source.setMainstat("Fire DMG Boost");
 
         Relic candidate =
-            relic(null, Slot.PlanarSphere, "setA", 5);
+            relic("", Slot.PlanarSphere, "setA", 5);
+        candidate.setMainstat("Effect Hit Rate");
 
-        candidate.setMainstat("Lightning DMG Boost");
-
-        mutateSingleRelic(
-            data(source, candidate),
-            "8010",
-            0,
-            Set.of(),
-            Set.of(), rand);
-
-        assertEquals("8010", candidate.getLocation());
-        assertEquals("", source.getLocation());
-    }
-
-    @Test
-    void planarSphereRejectsOtherMainstats() {
-        Relic source =
-            relic("8010", Slot.PlanarSphere, "setA", 5);
-
-        Relic candidate =
-            relic(null, Slot.PlanarSphere, "setA", 5);
-
-        candidate.setMainstat("Crit Rate");
+        ScannedData data = data(source, candidate);
 
         mutateSingleRelic(
-            data(source, candidate),
-            "8010",
-            0,
-            Set.of(),
-            Set.of(), rand);
-
-        assertEquals("8010", source.getLocation());
-        assertNull(candidate.getLocation());
-    }
-
-    @Test
-    void returnsWhenNoEligibleCandidateExists() {
-
-        Relic source =
-            relic("8010", Slot.Head, "setA", 5);
-
-        Relic candidate =
-            relic("", Slot.Head, "setB", 5);
-
-        mutateSingleRelic(
-            data(source, candidate),
+            data,
             "8010",
             0,
             Set.of(),
@@ -336,5 +269,127 @@ public class SimulatedAnnealingMutateSingleRelicTests {
 
         assertEquals("8010", source.getLocation());
         assertEquals("", candidate.getLocation());
+    }
+
+    @Test
+    void acceptsSphereWithCorrectMainstat() {
+
+        Relic source =
+            relic("8010", Slot.PlanarSphere, "setA", 5);
+        source.setMainstat("Fire DMG Boost");
+
+        Relic candidate =
+            relic("", Slot.PlanarSphere, "setA", 5);
+        candidate.setMainstat("ATK");
+
+        ScannedData data = data(source, candidate);
+
+        mutateSingleRelic(
+            data,
+            "8010",
+            0,
+            Set.of(),
+            Set.of(), rand);
+
+        assertEquals("", source.getLocation());
+        assertEquals("8010", candidate.getLocation());
+    }
+
+    @Test
+    void handlesMultipleCandidates() {
+
+        Relic source =
+            relic("8010", Slot.Head, "setA", 5);
+
+        Relic candidate1 =
+            relic("", Slot.Head, "setA", 5);
+
+        Relic candidate2 =
+            relic("", Slot.Head, "setA", 5);
+
+        ScannedData data = data(source, candidate1, candidate2);
+
+        mutateSingleRelic(
+            data,
+            "8010",
+            0,
+            Set.of(),
+            Set.of(), rand);
+
+        assertEquals("", source.getLocation());
+        long assignedCount = data.getRelics().stream()
+            .filter(r -> "8010".equals(r.getLocation()))
+            .count();
+        assertEquals(1, assignedCount);
+    }
+
+    @Test
+    void handlesMixedAvailability() {
+
+        Relic source =
+            relic("8010", Slot.Head, "setA", 5);
+
+        Relic available =
+            relic("", Slot.Head, "setA", 5);
+
+        Relic blocked =
+            relic("blocked", Slot.Head, "setA", 5);
+
+        ScannedData data = data(source, available, blocked);
+
+        mutateSingleRelic(
+            data,
+            "8010",
+            0,
+            Set.of(),
+            Set.of(), rand);
+
+        assertEquals("", source.getLocation());
+        assertEquals("8010", available.getLocation());
+        assertEquals("blocked", blocked.getLocation());
+    }
+
+    @Test
+    void handlesNullLocationAsUnequipped() {
+
+        Relic source =
+            relic("8010", Slot.Head, "setA", 5);
+
+        Relic candidate =
+            relic(null, Slot.Head, "setA", 5);
+
+        ScannedData data = data(source, candidate);
+
+        mutateSingleRelic(
+            data,
+            "8010",
+            0,
+            Set.of(),
+            Set.of(), rand);
+
+        assertEquals("", source.getLocation());
+        assertEquals("8010", candidate.getLocation());
+    }
+
+    @Test
+    void handlesEmptyLocationAsUnequipped() {
+
+        Relic source =
+            relic("8010", Slot.Head, "setA", 5);
+
+        Relic candidate =
+            relic("", Slot.Head, "setA", 5);
+
+        ScannedData data = data(source, candidate);
+
+        mutateSingleRelic(
+            data,
+            "8010",
+            0,
+            Set.of(),
+            Set.of(), rand);
+
+        assertEquals("", source.getLocation());
+        assertEquals("8010", candidate.getLocation());
     }
 }

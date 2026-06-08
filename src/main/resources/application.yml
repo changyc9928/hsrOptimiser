@@ -17,6 +17,6 @@ asagi:
   url: "https://honkai.asagi-game.com"
 
 simulated-annealing:
-  initial-temperature: 1
+  initial-temperature: 10
   cooling-rate: 0.9
   epoch: 100
