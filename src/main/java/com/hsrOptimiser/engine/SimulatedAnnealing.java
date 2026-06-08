@@ -14,6 +14,8 @@ import com.hsrOptimiser.clientConfig.AsagiCharacterMetadata;
 import com.hsrOptimiser.mapper.AsagiCharactersItemMapper;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +25,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -86,17 +89,22 @@ public class SimulatedAnnealing {
         List<Slot> cavernSlots = List.of(Slot.Head, Slot.Hands, Slot.Body, Slot.Feet);
 
         double roll = ThreadLocalRandom.current().nextDouble();
-        if (roll < 0.33) {
+        if (roll < 0.5) {
             mutateSingleRelic(data, characterId, abilityVersion,
                 new HashSet<>(allowedToScrapRelicsCharacterIds),
                 new HashSet<>(disallowedToScrapRelicsCharacterIds));
-        } else if (roll < 0.66) {
+        } else if (roll < 0.75) {
+            mutateOneExistingPair(data, characterId, cavernSlots, currentEquipped,
+                new HashSet<>(allowedToScrapRelicsCharacterIds),
+                new HashSet<>(disallowedToScrapRelicsCharacterIds));
+        } else if (roll < 0.875) {
             mutatePlanarPair(data, characterId, abilityVersion, currentEquipped,
                 new HashSet<>(allowedToScrapRelicsCharacterIds),
                 new HashSet<>(disallowedToScrapRelicsCharacterIds));
         } else {
             mutateCavernSets(data, characterId, cavernSlots, currentEquipped,
-                allowedToScrapRelicsCharacterIds, disallowedToScrapRelicsCharacterIds);
+                new HashSet<>(allowedToScrapRelicsCharacterIds),
+                new HashSet<>(disallowedToScrapRelicsCharacterIds));
         }
     }
 
@@ -287,77 +295,359 @@ public class SimulatedAnnealing {
         }
     }
 
-    private static void mutateCavernSets(ScannedData data, String characterId, List<Slot> slots,
+    private static void mutateCavernSets(
+        ScannedData data,
+        String characterId,
+        List<Slot> slots,
         List<Relic> currentEquipped,
-        List<String> allowedToScrapRelicsCharacterIds,
-        List<String> disallowedToScrapRelicsCharacterIds) {
-        ThreadLocalRandom rand = ThreadLocalRandom.current();
-        Map<Relic, String> originalLocations = currentEquipped.stream()
-            .filter(r -> slots.contains(r.getSlot()))
-            .collect(Collectors.toMap(r -> r, Relic::getLocation, (v1, v2) -> v1));
+        Set<String> allowedSet,
+        Set<String> disallowedSet) {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        mutateCavernSets(data, characterId, slots, currentEquipped, allowedSet, disallowedSet,
+            random);
+    }
 
-        originalLocations.keySet().forEach(r -> r.setLocation(""));
+    static void mutateCavernSets(
+        ScannedData data,
+        String characterId,
+        List<Slot> slots,
+        List<Relic> currentEquipped,
+        Set<String> allowedSet,
+        Set<String> disallowedSet,
+        Random random) {
 
-        Map<Slot, List<Relic>> availableBySlot = data.getRelics().stream()
-            .filter(r -> slots.contains(r.getSlot()))
-            .filter(
-                r -> (!StringUtils.hasText(r.getLocation()) || (
-                    allowedToScrapRelicsCharacterIds.contains(
-                        r.getLocation()) && !disallowedToScrapRelicsCharacterIds.contains(
-                        r.getLocation()))) && r.getRarity() == 5)
-            .collect(Collectors.groupingBy(Relic::getSlot));
+        Set<Slot> slotSet = EnumSet.copyOf(slots);
+
+        Map<Slot, List<Relic>> availableBySlot = new EnumMap<>(Slot.class);
+
+        for (Relic relic : data.getRelics()) {
+            if (!slotSet.contains(relic.getSlot())) {
+                continue;
+            }
+
+            if (relic.getRarity() != 5) {
+                continue;
+            }
+
+            String location = relic.getLocation();
+
+            boolean available =
+                !StringUtils.hasText(location)
+                    || (allowedSet.contains(location)
+                    && !disallowedSet.contains(location));
+
+            if (!available) {
+                continue;
+            }
+
+            availableBySlot
+                .computeIfAbsent(relic.getSlot(), k -> new ArrayList<>())
+                .add(relic);
+        }
 
         for (Slot slot : slots) {
-            if (!availableBySlot.containsKey(slot) || availableBySlot.get(slot).isEmpty()) {
-                originalLocations.forEach(Relic::setLocation);
+            List<Relic> pool = availableBySlot.get(slot);
+            if (pool == null || pool.isEmpty()) {
                 return;
             }
         }
 
         List<Slot> shuffledSlots = new ArrayList<>(slots);
-        Collections.shuffle(shuffledSlots, rand);
+        Collections.shuffle(shuffledSlots, random);
 
         Slot pair1A = shuffledSlots.get(0);
         Slot pair1B = shuffledSlots.get(1);
         Slot pair2A = shuffledSlots.get(2);
         Slot pair2B = shuffledSlots.get(3);
 
-        boolean pair1Success = equipMatchingPair(availableBySlot.get(pair1A),
-            availableBySlot.get(pair1B), characterId);
-        boolean pair2Success = equipMatchingPair(availableBySlot.get(pair2A),
-            availableBySlot.get(pair2B), characterId);
+        PairSelection pair1 = findMatchingPair(
+            availableBySlot.get(pair1A),
+            availableBySlot.get(pair1B),
+            random);
 
-        if (!pair1Success) {
-            equipAnyRandom(availableBySlot.get(pair1A), characterId);
-            equipAnyRandom(availableBySlot.get(pair1B), characterId);
+        if (pair1 == null) {
+            return;
         }
-        if (!pair2Success) {
-            equipAnyRandom(availableBySlot.get(pair2A), characterId);
-            equipAnyRandom(availableBySlot.get(pair2B), characterId);
+
+        PairSelection pair2 = findMatchingPair(
+            availableBySlot.get(pair2A),
+            availableBySlot.get(pair2B),
+            random);
+
+        if (pair2 == null) {
+            return;
         }
+
+        // Transaction commit phase.
+        clearLocations(currentEquipped, slotSet);
+
+        pair1.relicA().setLocation(characterId);
+        pair1.relicB().setLocation(characterId);
+
+        pair2.relicA().setLocation(characterId);
+        pair2.relicB().setLocation(characterId);
     }
 
-    private static boolean equipMatchingPair(List<Relic> poolA, List<Relic> poolB,
-        String characterId) {
-        ThreadLocalRandom rand = ThreadLocalRandom.current();
-        Set<String> setsInA = poolA.stream().map(Relic::getSetId).filter(Objects::nonNull)
-            .collect(Collectors.toSet());
-        List<String> matchingSets = poolB.stream().map(Relic::getSetId)
-            .filter(id -> id != null && setsInA.contains(id)).distinct().toList();
+    private static void mutateOneExistingPair(
+        ScannedData data,
+        String characterId,
+        List<Slot> slots,
+        List<Relic> currentEquipped,
+        Set<String> allowedToScrapRelicsCharacterIds,
+        Set<String> disallowedToScrapRelicsCharacterIds) {
 
-        if (matchingSets.isEmpty()) {
-            return false;
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        mutateOneExistingPair(data, characterId, slots, currentEquipped,
+            allowedToScrapRelicsCharacterIds, disallowedToScrapRelicsCharacterIds, random);
+    }
+
+    private static void mutateOneExistingPair(
+        ScannedData data,
+        String characterId,
+        List<Slot> slots,
+        List<Relic> currentEquipped,
+        Set<String> allowedSet,
+        Set<String> disallowedSet,
+        Random random) {
+
+        Set<Slot> slotSet = EnumSet.copyOf(slots);
+
+        Map<Slot, Relic> equippedBySlot = currentEquipped.stream()
+            .filter(r -> slotSet.contains(r.getSlot()))
+            .collect(Collectors.toMap(
+                Relic::getSlot,
+                Function.identity()));
+
+        List<SlotPair> mutablePairs = findExistingPairs(slots, equippedBySlot);
+
+        if (mutablePairs.isEmpty()) {
+            return;
         }
 
-        String chosenSetId = matchingSets.get(rand.nextInt(matchingSets.size()));
-        List<Relic> filteredA = poolA.stream().filter(r -> chosenSetId.equals(r.getSetId()))
-            .toList();
-        List<Relic> filteredB = poolB.stream().filter(r -> chosenSetId.equals(r.getSetId()))
-            .toList();
+        SlotPair pairToMutate =
+            mutablePairs.get(random.nextInt(mutablePairs.size()));
 
-        filteredA.get(rand.nextInt(filteredA.size())).setLocation(characterId);
-        filteredB.get(rand.nextInt(filteredB.size())).setLocation(characterId);
-        return true;
+        Map<Slot, List<Relic>> availableBySlot = buildAvailableBySlot(
+            data,
+            slotSet,
+            allowedSet,
+            disallowedSet);
+
+        List<Relic> poolA = availableBySlot.get(pairToMutate.slotA());
+        List<Relic> poolB = availableBySlot.get(pairToMutate.slotB());
+
+        if (poolA == null || poolB == null) {
+            return;
+        }
+
+        PairSelection replacement =
+            findReplacementPair(
+                poolA,
+                poolB,
+                pairToMutate.currentSetId(),
+                random);
+
+        if (replacement == null) {
+            return;
+        }
+
+        equippedBySlot.get(pairToMutate.slotA()).setLocation("");
+        equippedBySlot.get(pairToMutate.slotB()).setLocation("");
+
+        replacement.relicA().setLocation(characterId);
+        replacement.relicB().setLocation(characterId);
+    }
+
+    private static Map<Slot, List<Relic>> buildAvailableBySlot(
+        ScannedData data,
+        Set<Slot> slotSet,
+        Set<String> allowedSet,
+        Set<String> disallowedSet) {
+
+        Map<Slot, List<Relic>> availableBySlot = new EnumMap<>(Slot.class);
+
+        for (Relic relic : data.getRelics()) {
+
+            if (!slotSet.contains(relic.getSlot())) {
+                continue;
+            }
+
+            if (relic.getRarity() != 5) {
+                continue;
+            }
+
+            String location = relic.getLocation();
+
+            boolean available =
+                !StringUtils.hasText(location)
+                    || (allowedSet.contains(location)
+                    && !disallowedSet.contains(location));
+
+            if (!available) {
+                continue;
+            }
+
+            availableBySlot
+                .computeIfAbsent(relic.getSlot(), k -> new ArrayList<>())
+                .add(relic);
+        }
+
+        return availableBySlot;
+    }
+
+    private static List<SlotPair> findExistingPairs(
+        List<Slot> slots,
+        Map<Slot, Relic> equippedBySlot) {
+
+        List<SlotPair> result = new ArrayList<>();
+
+        for (int i = 0; i < slots.size(); i++) {
+            for (int j = i + 1; j < slots.size(); j++) {
+
+                Relic relicA = equippedBySlot.get(slots.get(i));
+                Relic relicB = equippedBySlot.get(slots.get(j));
+
+                if (relicA == null || relicB == null) {
+                    continue;
+                }
+
+                String setA = relicA.getSetId();
+
+                if (setA != null &&
+                    setA.equals(relicB.getSetId())) {
+
+                    result.add(new SlotPair(
+                        slots.get(i),
+                        slots.get(j),
+                        setA));
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private static PairSelection findReplacementPair(
+        List<Relic> poolA,
+        List<Relic> poolB,
+        String currentSetId,
+        Random random) {
+
+        Set<String> setsInA = new HashSet<>();
+
+        for (Relic relic : poolA) {
+            String setId = relic.getSetId();
+
+            if (setId != null &&
+                !setId.equals(currentSetId)) {
+
+                setsInA.add(setId);
+            }
+        }
+
+        List<String> candidateSets = new ArrayList<>();
+
+        Set<String> seen = new HashSet<>();
+
+        for (Relic relic : poolB) {
+            String setId = relic.getSetId();
+
+            if (setId == null ||
+                setId.equals(currentSetId) ||
+                !setsInA.contains(setId) ||
+                !seen.add(setId)) {
+
+                continue;
+            }
+
+            candidateSets.add(setId);
+        }
+
+        if (candidateSets.isEmpty()) {
+            return null;
+        }
+
+        String chosenSet =
+            candidateSets.get(random.nextInt(candidateSets.size()));
+
+        Relic relicA =
+            selectRandomRelicWithSet(poolA, chosenSet, random);
+
+        Relic relicB =
+            selectRandomRelicWithSet(poolB, chosenSet, random);
+
+        return new PairSelection(relicA, relicB);
+    }
+
+    private static PairSelection findMatchingPair(
+        List<Relic> poolA,
+        List<Relic> poolB,
+        Random random) {
+
+        Set<String> setIdsInA = new HashSet<>();
+
+        for (Relic relic : poolA) {
+            String setId = relic.getSetId();
+            if (setId != null) {
+                setIdsInA.add(setId);
+            }
+        }
+
+        List<String> matchingSetIds = new ArrayList<>();
+
+        for (Relic relic : poolB) {
+            String setId = relic.getSetId();
+            if (setId != null
+                && setIdsInA.contains(setId)
+                && !matchingSetIds.contains(setId)) {
+
+                matchingSetIds.add(setId);
+            }
+        }
+
+        if (matchingSetIds.isEmpty()) {
+            return null;
+        }
+
+        String chosenSetId =
+            matchingSetIds.get(random.nextInt(matchingSetIds.size()));
+
+        Relic selectedA = selectRandomRelicWithSet(poolA, chosenSetId, random);
+        Relic selectedB = selectRandomRelicWithSet(poolB, chosenSetId, random);
+
+        return new PairSelection(selectedA, selectedB);
+    }
+
+    private static Relic selectRandomRelicWithSet(
+        List<Relic> pool,
+        String setId,
+        Random random) {
+
+        Relic chosen = null;
+        int count = 0;
+
+        for (Relic relic : pool) {
+            if (setId.equals(relic.getSetId())) {
+                count++;
+
+                if (random.nextInt(count) == 0) {
+                    chosen = relic;
+                }
+            }
+        }
+
+        return chosen;
+    }
+
+    private static void clearLocations(
+        List<Relic> currentEquipped,
+        Set<Slot> slotSet) {
+
+        for (Relic relic : currentEquipped) {
+            if (slotSet.contains(relic.getSlot())) {
+                relic.setLocation("");
+            }
+        }
     }
 
     private static Relic pickSphere(List<Relic> spheres, String attackMainStat, Random rand) {
@@ -434,10 +724,6 @@ public class SimulatedAnnealing {
         for (Relic r : tx.equip) {
             r.setLocation(characterId);
         }
-    }
-
-    private static void equipAnyRandom(List<Relic> pool, String characterId) {
-        pool.get(ThreadLocalRandom.current().nextInt(pool.size())).setLocation(characterId);
     }
 
     private static TotalSubStats getTotalSubStatsOfACharacter(String characterId,
@@ -640,6 +926,19 @@ public class SimulatedAnnealing {
         request.setFixBreak(true);
 
         return request;
+    }
+
+    private record SlotPair(
+        Slot slotA,
+        Slot slotB,
+        String currentSetId) {
+
+    }
+
+    private record PairSelection(
+        Relic relicA,
+        Relic relicB) {
+
     }
 
     private static class EquipPlan {
