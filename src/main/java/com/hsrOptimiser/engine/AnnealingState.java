@@ -1,8 +1,11 @@
 package com.hsrOptimiser.engine;
 
+import lombok.Data;
+
 /**
  * Encapsulates the mutable state of the simulated annealing algorithm.
  */
+@Data
 public class AnnealingState {
 
     private final int totalEpochs;
@@ -12,7 +15,6 @@ public class AnnealingState {
     private int totalSteps;
     private double currentDamage;
     private double temperature;
-    private SimulationResult finalResult;
 
     public AnnealingState(int totalEpochs, double initialTemperature, double coolingRate) {
         this.totalEpochs = totalEpochs;
@@ -35,33 +37,5 @@ public class AnnealingState {
         currentDamage = newDamage;
         currentEpoch++;
         temperature *= coolingRate;
-    }
-
-    public int getTotalEpochs() {
-        return totalEpochs;
-    }
-
-    public int getCurrentEpoch() {
-        return currentEpoch;
-    }
-
-    public int getTotalSteps() {
-        return totalSteps;
-    }
-
-    public double getCurrentDamage() {
-        return currentDamage;
-    }
-
-    public double getTemperature() {
-        return temperature;
-    }
-
-    public SimulationResult getFinalResult() {
-        return finalResult;
-    }
-
-    public void setFinalResult(SimulationResult finalResult) {
-        this.finalResult = finalResult;
     }
 }

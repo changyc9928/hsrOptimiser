@@ -18,68 +18,20 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
- * Mutates one existing matched pair of cavern relics (Head/Hands/Body/Feet)
- * by replacing it with a different matching pair from the available pool.
+ * Mutates one existing matched pair of cavern relics (Head/Hands/Body/Feet) by replacing it with a
+ * different matching pair from the available pool.
  */
 @Component
 public class ExistingPairMutationStrategy implements RelicMutationStrategy {
 
     private static final List<Slot> CAVERN_SLOTS = List.of(
-            Slot.Head, Slot.Hands, Slot.Body, Slot.Feet);
-
-    @Override
-    public void mutate(ScannedData data, MutationContext context) {
-        var random = context.random();
-        var characterId = context.characterId();
-        var allowed = context.allowedCharacters();
-        var disallowed = context.disallowedCharacters();
-
-        List<Relic> currentEquipped = data.getRelics().stream()
-                .filter(r -> characterId.equals(r.getLocation()))
-                .toList();
-
-        Set<Slot> slotSet = EnumSet.copyOf(CAVERN_SLOTS);
-
-        Map<Slot, Relic> equippedBySlot = currentEquipped.stream()
-                .filter(r -> slotSet.contains(r.getSlot()))
-                .collect(Collectors.toMap(Relic::getSlot, Function.identity()));
-
-        List<SlotPair> mutablePairs = findExistingPairs(CAVERN_SLOTS, equippedBySlot);
-
-        if (mutablePairs.isEmpty()) {
-            return;
-        }
-
-        SlotPair pairToMutate = mutablePairs.get(random.nextInt(mutablePairs.size()));
-
-        Map<Slot, List<Relic>> availableBySlot = buildAvailableBySlot(data, slotSet, allowed, disallowed);
-
-        List<Relic> poolA = availableBySlot.get(pairToMutate.slotA());
-        List<Relic> poolB = availableBySlot.get(pairToMutate.slotB());
-
-        if (poolA == null || poolB == null) {
-            return;
-        }
-
-        PairSelection replacement = findReplacementPair(
-                poolA, poolB, pairToMutate.currentSetId(), random);
-
-        if (replacement == null) {
-            return;
-        }
-
-        equippedBySlot.get(pairToMutate.slotA()).setLocation("");
-        equippedBySlot.get(pairToMutate.slotB()).setLocation("");
-
-        replacement.relicA().setLocation(characterId);
-        replacement.relicB().setLocation(characterId);
-    }
+        Slot.Head, Slot.Hands, Slot.Body, Slot.Feet);
 
     private static Map<Slot, List<Relic>> buildAvailableBySlot(
-            ScannedData data,
-            Set<Slot> slotSet,
-            Set<String> allowedSet,
-            Set<String> disallowedSet) {
+        ScannedData data,
+        Set<Slot> slotSet,
+        Set<String> allowedSet,
+        Set<String> disallowedSet) {
         Map<Slot, List<Relic>> availableBySlot = new EnumMap<>(Slot.class);
 
         for (Relic relic : data.getRelics()) {
@@ -93,16 +45,16 @@ public class ExistingPairMutationStrategy implements RelicMutationStrategy {
                 continue;
             }
             availableBySlot
-                    .computeIfAbsent(relic.getSlot(), k -> new ArrayList<>())
-                    .add(relic);
+                .computeIfAbsent(relic.getSlot(), k -> new ArrayList<>())
+                .add(relic);
         }
 
         return availableBySlot;
     }
 
     private static List<SlotPair> findExistingPairs(
-            List<Slot> slots,
-            Map<Slot, Relic> equippedBySlot) {
+        List<Slot> slots,
+        Map<Slot, Relic> equippedBySlot) {
         List<SlotPair> result = new ArrayList<>();
 
         for (int i = 0; i < slots.size(); i++) {
@@ -125,10 +77,10 @@ public class ExistingPairMutationStrategy implements RelicMutationStrategy {
     }
 
     private static PairSelection findReplacementPair(
-            List<Relic> poolA,
-            List<Relic> poolB,
-            String currentSetId,
-            java.util.Random random) {
+        List<Relic> poolA,
+        List<Relic> poolB,
+        String currentSetId,
+        java.util.Random random) {
         Set<String> setsInA = new HashSet<>();
         for (Relic relic : poolA) {
             String setId = relic.getSetId();
@@ -143,9 +95,9 @@ public class ExistingPairMutationStrategy implements RelicMutationStrategy {
         for (Relic relic : poolB) {
             String setId = relic.getSetId();
             if (setId == null
-                    || setId.equals(currentSetId)
-                    || !setsInA.contains(setId)
-                    || !seen.add(setId)) {
+                || setId.equals(currentSetId)
+                || !setsInA.contains(setId)
+                || !seen.add(setId)) {
                 continue;
             }
             candidateSets.add(setId);
@@ -163,16 +115,68 @@ public class ExistingPairMutationStrategy implements RelicMutationStrategy {
         return new PairSelection(relicA, relicB);
     }
 
-    private static Relic selectRandomRelicWithSet(List<Relic> pool, String setId, java.util.Random random) {
+    private static Relic selectRandomRelicWithSet(List<Relic> pool, String setId,
+        java.util.Random random) {
         return RelicAvailabilityHelper.reservoirSample(
-                pool,
-                r -> setId.equals(r.getSetId()),
-                random);
+            pool,
+            r -> setId.equals(r.getSetId()),
+            random);
+    }
+
+    @Override
+    public void mutate(ScannedData data, MutationContext context) {
+        var random = context.random();
+        var characterId = context.characterId();
+        var allowed = context.allowedCharacters();
+        var disallowed = context.disallowedCharacters();
+
+        List<Relic> currentEquipped = data.getRelics().stream()
+            .filter(r -> characterId.equals(r.getLocation()))
+            .toList();
+
+        Set<Slot> slotSet = EnumSet.copyOf(CAVERN_SLOTS);
+
+        Map<Slot, Relic> equippedBySlot = currentEquipped.stream()
+            .filter(r -> slotSet.contains(r.getSlot()))
+            .collect(Collectors.toMap(Relic::getSlot, Function.identity()));
+
+        List<SlotPair> mutablePairs = findExistingPairs(CAVERN_SLOTS, equippedBySlot);
+
+        if (mutablePairs.isEmpty()) {
+            return;
+        }
+
+        SlotPair pairToMutate = mutablePairs.get(random.nextInt(mutablePairs.size()));
+
+        Map<Slot, List<Relic>> availableBySlot = buildAvailableBySlot(data, slotSet, allowed,
+            disallowed);
+
+        List<Relic> poolA = availableBySlot.get(pairToMutate.slotA());
+        List<Relic> poolB = availableBySlot.get(pairToMutate.slotB());
+
+        if (poolA == null || poolB == null) {
+            return;
+        }
+
+        PairSelection replacement = findReplacementPair(
+            poolA, poolB, pairToMutate.currentSetId(), random);
+
+        if (replacement == null) {
+            return;
+        }
+
+        equippedBySlot.get(pairToMutate.slotA()).setLocation("");
+        equippedBySlot.get(pairToMutate.slotB()).setLocation("");
+
+        replacement.relicA().setLocation(characterId);
+        replacement.relicB().setLocation(characterId);
     }
 
     private record SlotPair(Slot slotA, Slot slotB, String currentSetId) {
+
     }
 
     private record PairSelection(Relic relicA, Relic relicB) {
+
     }
 }

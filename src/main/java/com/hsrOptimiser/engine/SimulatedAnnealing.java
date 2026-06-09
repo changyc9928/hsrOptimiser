@@ -66,22 +66,26 @@ public class SimulatedAnnealing {
         log.info("Starting Simulated Annealing optimization. Target Epochs: {}, Initial Temp: {}",
                 epoch, initialTemperature);
 
-        ScannedData[] workingData = new ScannedData[] { SerializationUtils.clone(data) };
+        ScannedData workingData = SerializationUtils.clone(data);
         MocRequest mocRequest = mocRequestFactory.createBaseRequest();
 
+        // Capture in a final variable for the lambda; workingData itself
+        // will be reassigned during rollback/retry below.
+        final ScannedData initialData = workingData;
         mocRequest.setCharacters(characterIds.stream()
-                .map(characterId -> asagiCharacterMapper.map(workingData[0], characterId))
+                .map(characterId -> asagiCharacterMapper.map(initialData, characterId))
                 .toList());
 
         AnnealingState state = new AnnealingState(epoch, initialTemperature, tempCoolingRate);
         RetryPolicy retryPolicy = new RetryPolicy();
-        ScannedData snapshot = SerializationUtils.clone(workingData[0]);
+        ScannedData snapshot = SerializationUtils.clone(workingData);
+        MocResponse bestResponse = null;
 
         while (state.hasRemainingEpochs()) {
             state.incrementSteps();
 
-            updateRequestWithSubstats(mocRequest, workingData[0], characterIds);
-            applyRelicsToRequest(mocRequest, workingData[0]);
+            updateRequestWithSubstats(mocRequest, workingData, characterIds);
+            applyRelicsToRequest(mocRequest, workingData);
 
             long startTime = System.currentTimeMillis();
 
@@ -97,10 +101,11 @@ public class SimulatedAnnealing {
 
                 if (accepted) {
                     handleAcceptedState(state, totalDamage);
-                    snapshot = SerializationUtils.clone(workingData[0]);
+                    snapshot = SerializationUtils.clone(workingData);
+                    bestResponse = mocResponse;
                 } else {
                     handleRejectedState(state);
-                    workingData[0] = SerializationUtils.clone(snapshot);
+                    workingData = SerializationUtils.clone(snapshot);
                 }
 
                 retryPolicy.recordSuccess();
@@ -110,12 +115,12 @@ public class SimulatedAnnealing {
                 retryPolicy.recordFailure();
                 log.warn("Simulation step dropped due to error: {}. Consecutive failures: {}",
                         e.getMessage(), retryPolicy.getConsecutiveFailures());
-                workingData[0] = SerializationUtils.clone(snapshot);
+                workingData = SerializationUtils.clone(snapshot);
                 retryPolicy.applyBackoff();
             }
 
             performMutation(
-                    workingData[0],
+                    workingData,
                     characterIds,
                     fixedCharacterIds,
                     allowedToScrapRelicsCharacterIds,
@@ -127,7 +132,8 @@ public class SimulatedAnnealing {
                 "Optimization Completed! Final Damage: %.2f after %d total mutations.",
                 state.getCurrentDamage(), state.getTotalSteps()));
         log.info("================================================================");
-        return state.getFinalResult();
+
+        return new SimulationResult(snapshot, bestResponse);
     }
 
     private void handleAcceptedState(

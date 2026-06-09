@@ -2,9 +2,9 @@ package com.hsrOptimiser.services;
 
 import com.hsrOptimiser.DTO.asagi.RelicMain;
 import com.hsrOptimiser.DTO.asagi.RelicSet;
-import com.hsrOptimiser.clientConfig.AsagiRelicSetMetadata;
 import com.hsrOptimiser.DTO.hsrScanner.Relic;
 import com.hsrOptimiser.DTO.hsrScanner.Slot;
+import com.hsrOptimiser.clientConfig.AsagiRelicSetMetadata;
 import com.hsrOptimiser.utils.StatMapper;
 import java.util.List;
 import java.util.Map;
