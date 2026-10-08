@@ -2,6 +2,7 @@ package com.hsrOptimiser.engine;
 
 import java.util.List;
 import java.util.Random;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -18,18 +19,19 @@ import org.springframework.stereotype.Component;
  * </ul>
  */
 @Component
+@Slf4j
 public class MutationStrategySelector {
 
     private final List<RelicMutationStrategy> strategies;
     private final double[] thresholds;
 
     public MutationStrategySelector(
-            @Qualifier("singleRelicMutationStrategy") RelicMutationStrategy singleRelic,
-            @Qualifier("existingPairMutationStrategy") RelicMutationStrategy existingPair,
-            @Qualifier("planarPairMutationStrategy") RelicMutationStrategy planarPair,
-            @Qualifier("cavernSetMutationStrategy") RelicMutationStrategy cavernSet) {
+        @Qualifier("singleRelicMutationStrategy") RelicMutationStrategy singleRelic,
+        @Qualifier("existingPairMutationStrategy") RelicMutationStrategy existingPair,
+        @Qualifier("planarPairMutationStrategy") RelicMutationStrategy planarPair,
+        @Qualifier("cavernSetMutationStrategy") RelicMutationStrategy cavernSet) {
         this.strategies = List.of(singleRelic, existingPair, planarPair, cavernSet);
-        this.thresholds = new double[] { 0.50, 0.75, 0.875, 1.0 };
+        this.thresholds = new double[]{0.70, 0.90, 0.95, 1.0};
     }
 
     /**
@@ -38,7 +40,10 @@ public class MutationStrategySelector {
     public RelicMutationStrategy select(double roll) {
         for (int i = 0; i < thresholds.length; i++) {
             if (roll < thresholds[i]) {
-                return strategies.get(i);
+                RelicMutationStrategy relicMutationStrategy = strategies.get(i);
+                log.debug("Selected strategy: {}",
+                    relicMutationStrategy.getClass().getSimpleName());
+                return relicMutationStrategy;
             }
         }
         // Fallback (should never happen with roll in [0,1))

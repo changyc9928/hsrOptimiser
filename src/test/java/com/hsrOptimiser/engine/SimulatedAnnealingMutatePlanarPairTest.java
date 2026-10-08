@@ -55,9 +55,9 @@ class SimulatedAnnealingMutatePlanarPairTest {
     }
 
     private void mutatePlanarPair(ScannedData data, String characterId, int abilityVersion,
-            List<Relic> currentEquipped, Set<String> allowed, Set<String> disallowed, Random rand) {
+        List<Relic> currentEquipped, Set<String> allowed, Set<String> disallowed, Random rand) {
         MutationContext context = new MutationContext(
-                characterId, abilityVersion, allowed, disallowed, rand);
+            characterId, abilityVersion, allowed, disallowed, rand);
         strategy.mutate(data, context);
     }
 
@@ -66,9 +66,9 @@ class SimulatedAnnealingMutatePlanarPairTest {
         Relic r = relic("A", Slot.PlanarSphere, 4, "");
 
         mutatePlanarPair(
-                data(List.of(r)),
-                CHAR_ID, 0,
-                new ArrayList<>(), Set.of(), Set.of(), random);
+            data(List.of(r)),
+            CHAR_ID, 0,
+            new ArrayList<>(), Set.of(), Set.of(), random);
 
         assertEquals("", r.getLocation());
     }
@@ -78,9 +78,9 @@ class SimulatedAnnealingMutatePlanarPairTest {
         Relic r = relic("A", Slot.Head, 5, "");
 
         mutatePlanarPair(
-                data(List.of(r)),
-                CHAR_ID, 0,
-                new ArrayList<>(), Set.of(), Set.of(), random);
+            data(List.of(r)),
+            CHAR_ID, 0,
+            new ArrayList<>(), Set.of(), Set.of(), random);
 
         assertEquals("", r.getLocation());
     }
@@ -90,9 +90,9 @@ class SimulatedAnnealingMutatePlanarPairTest {
         Relic r = relic("A", Slot.PlanarSphere, 5, "BLOCKED");
 
         mutatePlanarPair(
-                data(List.of(r)),
-                CHAR_ID, 0,
-                new ArrayList<>(), Set.of(), Set.of("BLOCKED"), random);
+            data(List.of(r)),
+            CHAR_ID, 0,
+            new ArrayList<>(), Set.of(), Set.of("BLOCKED"), random);
 
         assertEquals("BLOCKED", r.getLocation());
     }
@@ -103,9 +103,9 @@ class SimulatedAnnealingMutatePlanarPairTest {
         Relic ropeOnly = relic("B", Slot.LinkRope, 5, "");
 
         mutatePlanarPair(
-                data(List.of(sphereOnly, ropeOnly)),
-                CHAR_ID, 0,
-                new ArrayList<>(), Set.of(), Set.of(), random);
+            data(List.of(sphereOnly, ropeOnly)),
+            CHAR_ID, 0,
+            new ArrayList<>(), Set.of(), Set.of(), random);
 
         assertEquals("", sphereOnly.getLocation());
         assertEquals("", ropeOnly.getLocation());
@@ -120,10 +120,10 @@ class SimulatedAnnealingMutatePlanarPairTest {
         Relic newRope = relic("NEW", Slot.LinkRope, 5, "");
 
         mutatePlanarPair(
-                data(List.of(oldSphere, oldRope, newSphere, newRope)),
-                CHAR_ID, 0,
-                new ArrayList<>(List.of(oldSphere, oldRope)),
-                Set.of(), Set.of(), random);
+            data(List.of(oldSphere, oldRope, newSphere, newRope)),
+            CHAR_ID, 0,
+            new ArrayList<>(List.of(oldSphere, oldRope)),
+            Set.of(), Set.of(), random);
 
         assertEquals("", oldSphere.getLocation());
         assertEquals("", oldRope.getLocation());
@@ -136,9 +136,9 @@ class SimulatedAnnealingMutatePlanarPairTest {
         Relic r = relic("A", Slot.Head, 5, "");
 
         mutatePlanarPair(
-                data(List.of(r)),
-                CHAR_ID, 0,
-                new ArrayList<>(), Set.of(), Set.of(), random);
+            data(List.of(r)),
+            CHAR_ID, 0,
+            new ArrayList<>(), Set.of(), Set.of(), random);
 
         assertEquals("", r.getLocation());
     }
@@ -152,13 +152,13 @@ class SimulatedAnnealingMutatePlanarPairTest {
         Relic bRope = relic("B", Slot.LinkRope, 5, "");
 
         mutatePlanarPair(
-                data(List.of(aSphere, aRope, bSphere, bRope)),
-                CHAR_ID, 0,
-                new ArrayList<>(), Set.of(), Set.of(), random);
+            data(List.of(aSphere, aRope, bSphere, bRope)),
+            CHAR_ID, 0,
+            new ArrayList<>(), Set.of(), Set.of(), random);
 
         long equipped = Stream.of(aSphere, aRope, bSphere, bRope)
-                .filter(r -> CHAR_ID.equals(r.getLocation()))
-                .count();
+            .filter(r -> CHAR_ID.equals(r.getLocation()))
+            .count();
 
         assertEquals(2, equipped);
     }
@@ -168,9 +168,9 @@ class SimulatedAnnealingMutatePlanarPairTest {
         Relic r = relic("A", Slot.PlanarSphere, 5, "OK");
 
         mutatePlanarPair(
-                data(List.of(r)),
-                CHAR_ID, 0,
-                new ArrayList<>(), Set.of("OK"), Set.of(), random);
+            data(List.of(r)),
+            CHAR_ID, 0,
+            new ArrayList<>(), Set.of("OK"), Set.of(), random);
 
         assertNotNull(r.getLocation());
     }
@@ -185,9 +185,9 @@ class SimulatedAnnealingMutatePlanarPairTest {
         }
 
         assertDoesNotThrow(() -> mutatePlanarPair(
-                data(relics),
-                CHAR_ID, 0,
-                new ArrayList<>(), Set.of(), Set.of(), random));
+            data(relics),
+            CHAR_ID, 0,
+            new ArrayList<>(), Set.of(), Set.of(), random));
     }
 
     @Test
@@ -201,15 +201,15 @@ class SimulatedAnnealingMutatePlanarPairTest {
         List<Relic> equipped = new ArrayList<>(List.of(oldSphere, oldRope));
 
         mutatePlanarPair(
-                data(List.of(oldSphere, oldRope, newSphere, newRope)),
-                CHAR_ID, 0,
-                equipped, Set.of(), Set.of(), random);
+            data(List.of(oldSphere, oldRope, newSphere, newRope)),
+            CHAR_ID, 0,
+            equipped, Set.of(), Set.of(), random);
 
         boolean oldStillEquipped = CHAR_ID.equals(oldSphere.getLocation()) ||
-                CHAR_ID.equals(oldRope.getLocation());
+            CHAR_ID.equals(oldRope.getLocation());
 
         boolean newFullyEquipped = CHAR_ID.equals(newSphere.getLocation()) &&
-                CHAR_ID.equals(newRope.getLocation());
+            CHAR_ID.equals(newRope.getLocation());
 
         assertTrue(newFullyEquipped || !oldStillEquipped);
     }
@@ -220,15 +220,15 @@ class SimulatedAnnealingMutatePlanarPairTest {
         Relic rope = relic("NEW", Slot.LinkRope, 5, "");
 
         mutatePlanarPair(
-                data(List.of(sphere, rope)),
-                CHAR_ID, 0,
-                new ArrayList<>(), Set.of(), Set.of(), random);
+            data(List.of(sphere, rope)),
+            CHAR_ID, 0,
+            new ArrayList<>(), Set.of(), Set.of(), random);
 
         boolean sphereEquipped = CHAR_ID.equals(sphere.getLocation());
         boolean ropeEquipped = CHAR_ID.equals(rope.getLocation());
 
         assertEquals(sphereEquipped, ropeEquipped,
-                "Sphere and rope must be consistent (both or none)");
+            "Sphere and rope must be consistent (both or none)");
     }
 
     @Test
@@ -255,10 +255,10 @@ class SimulatedAnnealingMutatePlanarPairTest {
         Relic onlySphere = relic("A", Slot.PlanarSphere, 5, "");
 
         mutatePlanarPair(
-                data(List.of(oldSphere, onlySphere)),
-                CHAR_ID, 0,
-                new ArrayList<>(List.of(oldSphere)),
-                Set.of(), Set.of(), random);
+            data(List.of(oldSphere, onlySphere)),
+            CHAR_ID, 0,
+            new ArrayList<>(List.of(oldSphere)),
+            Set.of(), Set.of(), random);
 
         assertEquals(CHAR_ID, oldSphere.getLocation());
     }

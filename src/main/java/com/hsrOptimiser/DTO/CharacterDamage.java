@@ -6,7 +6,8 @@ import lombok.Data;
 
 @Data
 public class CharacterDamage {
+
     double totalDamage;
     String name;
-    List<Relic>  relics;
+    List<Relic> relics;
 }

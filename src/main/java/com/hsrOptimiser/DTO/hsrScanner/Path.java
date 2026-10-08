@@ -3,8 +3,10 @@ package com.hsrOptimiser.DTO.hsrScanner;
 import com.fasterxml.jackson.annotation.JsonAlias;
 
 public enum Path {
-    @JsonAlias({"The Hunt", "hunt"})
+    @JsonAlias({"The Hunt", "hunt", "TheHunt"})
     TheHunt,
+    @JsonAlias("remembrance")
+    Remembrance,
     @JsonAlias("harmony")
     Harmony,
     @JsonAlias("preservation")

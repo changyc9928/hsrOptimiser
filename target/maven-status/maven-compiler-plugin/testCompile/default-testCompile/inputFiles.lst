@@ -1,0 +1,8 @@
+/Users/yincheng.chang/hsrOptimiser/src/test/java/com/hsrOptimiser/HsrOptimiserApplicationTests.java
+/Users/yincheng.chang/hsrOptimiser/src/test/java/com/hsrOptimiser/client/AsagiClientTest.java
+/Users/yincheng.chang/hsrOptimiser/src/test/java/com/hsrOptimiser/clientConfig/EnumDebugTest.java
+/Users/yincheng.chang/hsrOptimiser/src/test/java/com/hsrOptimiser/engine/SimulatedAnnealingMutateCavernSetsTest.java
+/Users/yincheng.chang/hsrOptimiser/src/test/java/com/hsrOptimiser/engine/SimulatedAnnealingMutateOneExistingPairTest.java
+/Users/yincheng.chang/hsrOptimiser/src/test/java/com/hsrOptimiser/engine/SimulatedAnnealingMutatePlanarPairTest.java
+/Users/yincheng.chang/hsrOptimiser/src/test/java/com/hsrOptimiser/engine/SimulatedAnnealingMutateSingleRelicTests.java
+/Users/yincheng.chang/hsrOptimiser/src/test/java/com/hsrOptimiser/engine/strategies/PlanarPairMutationStrategyTest.java

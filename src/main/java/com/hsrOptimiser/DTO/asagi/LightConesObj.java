@@ -6,8 +6,9 @@ import lombok.Data;
 
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class LightConesObj{
-	private int reality;
-	private int type;
-	private String key;
+public class LightConesObj {
+
+    private int reality;
+    private int type;
+    private String key;
 }

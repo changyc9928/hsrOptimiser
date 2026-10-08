@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class EvaluateRequestV2 {
+
     String userId;
     List<String> characterIds;
     List<String> fixedCharacterIds;

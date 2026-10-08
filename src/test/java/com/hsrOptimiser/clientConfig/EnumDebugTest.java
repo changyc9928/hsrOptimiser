@@ -2,12 +2,14 @@ package com.hsrOptimiser.clientConfig;
 
 // File: EnumDebugTest.java
 public class EnumDebugTest {
+
     public static void main(String[] args) {
         System.out.println("🔍 Starting enum load test...");
 
         try {
             // Force class loading by referencing a constant
-            Class<?> enumClass = Class.forName("com.hsrOptimiser.clientConfig.AsagiLightConeMetadata");
+            Class<?> enumClass = Class.forName(
+                "com.hsrOptimiser.clientConfig.AsagiLightConeMetadata");
             System.out.println("✅ Class loaded: " + enumClass.getName());
 
             // Try to access values

@@ -16,10 +16,10 @@ public class Relic implements Serializable {
     Slot slot;
     int rarity;
     int level;
-//    @JsonAlias("mainstat")
+    //    @JsonAlias("mainstat")
 //    @JsonDeserialize(using = StatsMappingSerializer.class)
     String mainstat;
-//    @JsonAlias("substats")
+    //    @JsonAlias("substats")
     List<SubStats> substats;
     List<SubStats> previewSubstats;
     String location;

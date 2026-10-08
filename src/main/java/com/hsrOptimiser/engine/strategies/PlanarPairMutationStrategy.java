@@ -16,8 +16,7 @@ import java.util.Random;
 import org.springframework.stereotype.Component;
 
 /**
- * Mutates the planar ornament pair (sphere + rope) by selecting a random valid
- * set that has both a
+ * Mutates the planar ornament pair (sphere + rope) by selecting a random valid set that has both a
  * sphere and a rope available.
  */
 @Component
@@ -25,15 +24,15 @@ public class PlanarPairMutationStrategy implements RelicMutationStrategy {
 
     private static Relic pickSphere(List<Relic> spheres, String attackMainStat, Random rand) {
         return RelicAvailabilityHelper.reservoirSample(
-                spheres,
-                r -> {
-                    String stat = r.getMainstat();
-                    return stat.equals(attackMainStat)
-                            || stat.equals("HP")
-                            || stat.equals("ATK")
-                            || stat.equals("DEF");
-                },
-                rand);
+            spheres,
+            r -> {
+                String stat = r.getMainstat();
+                return stat.equals(attackMainStat)
+                    || stat.equals("HP")
+                    || stat.equals("ATK")
+                    || stat.equals("DEF");
+            },
+            rand);
     }
 
     private static Relic pickRope(List<Relic> ropes, Random rand) {
@@ -52,8 +51,8 @@ public class PlanarPairMutationStrategy implements RelicMutationStrategy {
         var disallowed = context.disallowedCharacters();
 
         String attackMainStat = AsagiCharacterMetadata
-                .getInfoById(characterId, abilityVersion)
-                .getAttackType() + " DMG Boost";
+            .getInfoById(characterId, abilityVersion)
+            .getAttackType() + " DMG Boost";
 
         // Build set pools
         Map<String, PlanarSet> sets = new HashMap<>();
@@ -103,19 +102,18 @@ public class PlanarPairMutationStrategy implements RelicMutationStrategy {
     }
 
     /**
-     * Unequips only the planar relics (PlanarSphere and LinkRope) currently
-     * equipped by the given character, then equips the new sphere and rope.
+     * Unequips only the planar relics (PlanarSphere and LinkRope) currently equipped by the given
+     * character, then equips the new sphere and rope.
      *
      * <p>
-     * This method operates on the live relic list so it never uses a stale
-     * snapshot, and it only touches planar slots so cavern relics (Head/Hands/
-     * Body/Feet) are never disturbed.
+     * This method operates on the live relic list so it never uses a stale snapshot, and it only
+     * touches planar slots so cavern relics (Head/Hands/ Body/Feet) are never disturbed.
      */
     private void replacePlanarPair(
-            ScannedData data,
-            String characterId,
-            Relic newSphere,
-            Relic newRope) {
+        ScannedData data,
+        String characterId,
+        Relic newSphere,
+        Relic newRope) {
 
         for (Relic r : data.getRelics()) {
             if (!characterId.equals(r.getLocation())) {
@@ -131,8 +129,8 @@ public class PlanarPairMutationStrategy implements RelicMutationStrategy {
     }
 
     private record PlanarSet(
-            List<Relic> spheres,
-            List<Relic> ropes) {
+        List<Relic> spheres,
+        List<Relic> ropes) {
 
         PlanarSet() {
             this(new ArrayList<>(), new ArrayList<>());

@@ -6,9 +6,10 @@ import lombok.Data;
 
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class RelicSet{
-	private String ornament;
-	private String set2;
-	private String set1;
+public class RelicSet {
+
+    private String ornament;
+    private String set2;
+    private String set1;
 
 }

@@ -1,6 +1,7 @@
 package com.hsrOptimiser.clientConfig;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -9,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum AsagiLightConeMetadata {
-
-    // ==================== 3-Star Light Cones ====================
     ARROWS("20000", "Arrows", 3, 1),
     CORNUCOPIA("20001", "Cornucopia", 3, 1),
     COLLAPSING_SKY("20002", "CollapsingSky", 3, 1),
@@ -36,15 +35,13 @@ public enum AsagiLightConeMetadata {
     REMINISCENCE("20022", "Reminiscence", 3, 2),
     SNEERING("20023", "Sneering", 3, 1),
     LINGERING_TEAR("20024", "LingeringTear", 3, 1),
-
-    // ==================== 4-Star Light Cones ====================
     POST_OP("21000", "PostOp", 4, 0),
     GOOD_NIGHT_SLEEP_WELL("21001", "GoodNightSleepWell", 4, 0),
     MY_NEW_LIFE("21002", "MyNewLife", 4, 0),
     ONLY_SILENCE_REMAINS("21003", "OnlySilenceRemains", 4, 0),
     MEMORIES_PAST("21004", "MemoriesPast", 4, 0),
     MOLES_WELCOME_YOU("21005", "MolesWelcomeYou", 4, 0),
-    BIRTH_OF_THE_SELF("21006", "BirthOftheSelf", 4, 0),
+    BIRTH_OFTHE_SELF("21006", "BirthOftheSelf", 4, 0),
     SHARED_FEELING("21007", "SharedFeeling", 4, 0),
     EYES_PREY("21008", "EyesPrey", 4, 0),
     LANDAUS_CHOICE("21009", "LandausChoice", 4, 0),
@@ -57,7 +54,7 @@ public enum AsagiLightConeMetadata {
     UNIVERSAL_MARKET("21016", "UniversalMarket", 4, 0),
     SUBSCRIBE_MORE("21017", "SubscribeMore", 4, 0),
     DANCE_DANCE_DANCE("21018", "DanceDanceDance", 4, 0),
-    UNDER_THE_BLUE_SKY("21019", "UndertheBlueSky", 4, 0),
+    UNDERTHE_BLUE_SKY("21019", "UndertheBlueSky", 4, 0),
     GENIUSES_REPOSE("21020", "GeniusesRepose", 4, 0),
     QUID_PRO_QUO("21021", "QuidProQuo", 4, 2),
     FERMATA("21022", "Fermata", 4, 2),
@@ -90,17 +87,18 @@ public enum AsagiLightConeMetadata {
     VICTORY_BLINK("21050", "VictoryBlink", 4, 2),
     GENIUSES_GREETINGS("21051", "GeniusesGreetings", 4, 1),
     SWEAT_NOW_CRY_LESS("21052", "SweatNowCryLess", 4, 1),
-    JOURNEY_FOREVER_PEACEFUL("21053", "JourneyForeverPeaceful", 0, 0),
-    STORY_NEXT_PAGE("21054", "StoryNextPage", 0, 0),
-    UNTO_TOMORROWS_MORROW("21055", "UntoTomorrowsMorrow", 0, 0),
-    IN_PURSUIT_WIND("21056", "InPursuitWind", 0, 0),
-    FLOWER_REMEMBERS("21057", "FlowerRemembers", 0, 0),
+    JOURNEY_FOREVER_PEACEFUL("21053", "JourneyForeverPeaceful", 4, 1),
+    STORY_NEXT_PAGE("21054", "StoryNextPage", 4, 1),
+    UNTO_TOMORROWS_MORROW("21055", "UntoTomorrowsMorrow", 4, 1),
+    IN_PURSUIT_WIND("21056", "InPursuitWind", 4, 1),
+    FLOWER_REMEMBERS("21057", "FlowerRemembers", 4, 1),
     TRAIL_BYGONE_BLOOD("21058", "TrailBygoneBlood", 4, 0),
-    DREAM_SCENTED_WHEAT("21060", "DreamScentedWheat", 0, 0),
+    DREAM_SCENTED_WHEAT("21060", "DreamScentedWheat", 4, 1),
     HOLIDAY_THERMAE_ESCAPADE("21061", "HolidayThermaeEscapade", 4, 2),
-    SEE_YOU_THE_END("21062", "SeeYouTheEnd", 0, 0),
+    SEE_YOU_THE_END("21062", "SeeYouTheEnd", 4, 1),
     MUSHY_AHROOMYS_ADVENTURES("21064", "MushyAhroomysAdventures", 4, 2),
     TODAYS_GOOD_LUCK("21065", "TodaysGoodLuck", 4, 1),
+    ALITTLE_GETAWAY("21066", "ALittleGetaway", 4, 0),
     BEFORE_MISSION_STARTS("22000", "BeforeMissionStarts", 4, 2),
     OVER_HERE("22001", "OverHere", 4, 2),
     TOMORROWS_JOURNEY("22002", "TomorrowsJourney", 4, 2),
@@ -109,8 +107,7 @@ public enum AsagiLightConeMetadata {
     FOREVER_VICTUAL("22005", "ForeverVictual", 4, 2),
     TAKE_FLIGHT_TOWARD_PINK_TOMORROW("22006", "TakeFlightTowardPinkTomorrow", 4, 2),
     TOMORROW_TOGETHER("22007", "TomorrowTogether", 4, 1),
-
-    // ==================== 5-Star Light Cones ====================
+    RACE_TO_THE_HORIZON("22008", "RaceToTheHorizon", 4, 2),
     NIGHT_MILKY_WAY("23000", "NightMilkyWay", 5, 0),
     IN_THE_NIGHT("23001", "InTheNight", 5, 1),
     SOMETHING_IRREPLACEABLE("23002", "SomethingIrreplaceable", 5, 0),
@@ -159,17 +156,23 @@ public enum AsagiLightConeMetadata {
     THANKLESS_CORONATION("23045", "ThanklessCoronation", 5, 1),
     HELL_WHERE_IDEALS_BURN("23046", "HellWhereIdealsBurn", 5, 1),
     WHY_DOES_OCEAN_SING("23047", "WhyDoesOceanSing", 5, 1),
-    EPOCH_ETCHED_IN_THE_GOLDEN_BLOOD("23048", "EpochEtchedInGoldenBlood", 5, 1),
+    EPOCH_ETCHED_IN_GOLDEN_BLOOD("23048", "EpochEtchedInGoldenBlood", 5, 1),
     TO_EVERNIGHTS_STARS("23049", "ToEvernightsStars", 5, 1),
     NEVER_FORGET_HER_FLAME("23050", "NeverForgetHerFlame", 5, 1),
     THOUGH_WORLDS_APART("23051", "ThoughWorldsApart", 5, 1),
     THIS_LOVE_FOREVER("23052", "ThisLoveForever", 5, 1),
     DAZZLED_BY_FLOWERY_WORLD("23053", "DazzledByFloweryWorld", 5, 1),
-    WHEN_SHE_DECIDED_TO_SEE("23054", "WhenSheDecidedToSee", 0, 0),
+    WHEN_SHE_DECIDED_TO_SEE("23054", "WhenSheDecidedToSee", 5, 1),
+    COLORS_FOR_TOMORROW("23055", "ColorsForTomorrow", 5, 1),
     FINALE_OF_LIE("23056", "FinaleOfLie", 5, 1),
     WELCOME_COSMIC_CITY("23057", "WelcomeCosmicCity", 5, 1),
     UNTIL_FLOWERS_BLOOM_AGAIN("23058", "UntilFlowersBloomAgain", 5, 1),
     REFORGED_IN_HELLFIRE("23059", "ReforgedInHellfire", 5, 1),
+    STAR_THAT_LIGHTS_NIGHT("23060", "StarThatLightsNight", 5, 1),
+    FLICKERING_STARS("23061", "FlickeringStars", 5, 1),
+    IAM_AS_YOU_BEHOLD("23062", "IAmAsYouBehold", 5, 1),
+    RISE_AND_SING("23063", "RiseAndSing", 5, 1),
+    SUMMER_RIDES_THE_SURF("23064", "SummerRidesTheSurf", 5, 1),
     FALL_OF_AEON("24000", "FallOfAeon", 5, 2),
     CRUISING_STELLAR_SEA("24001", "CruisingStellarSea", 5, 2),
     TEXTURE_MEMORIES("24002", "TextureMemories", 5, 2),
@@ -178,11 +181,11 @@ public enum AsagiLightConeMetadata {
     MEMORYS_CURTAIN_NEVER_FALLS("24005", "MemorysCurtainNeverFalls", 5, 2),
     ELATION_BRIMMING_WITH_BLESSINGS("24006", "ElationBrimmingWithBlessings", 5, 2);
 
-
+    // Cache maps for fast O(1) lookups
     private static final Map<String, AsagiLightConeMetadata> ID_MAP =
         Arrays.stream(values())
             .collect(Collectors.toMap(AsagiLightConeMetadata::getId, c -> c));
-    // ==================== Lookup Map ====================
+
     private final String id;
     private final String internalName;
     private final int rarity;

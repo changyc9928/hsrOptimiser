@@ -7,7 +7,8 @@ import lombok.Data;
 
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class MocResponse{
-	private List<TItem> t;
-	private List<TimelineItem> timeline;
+public class MocResponse {
+
+    private List<TItem> t;
+    private List<TimelineItem> timeline;
 }

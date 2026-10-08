@@ -6,66 +6,67 @@ import lombok.Data;
 
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class TotalSubStats{
-	private double hpFlat;
-	private double hpRate;
-	private double spdFlat;
-	private double atkFlat;
-	private double critRate;
-	private double atkRate;
-	private double critDmg;
-	private double effectHit;
-	private double defFlat;
-	private double breakRate;
-	private double defRate;
-	private double effectRes;
-	private String key;
+public class TotalSubStats {
 
-	public void addHpFlat(double hpFlat) {
-		this.hpFlat += hpFlat;
-	}
+    private double hpFlat;
+    private double hpRate;
+    private double spdFlat;
+    private double atkFlat;
+    private double critRate;
+    private double atkRate;
+    private double critDmg;
+    private double effectHit;
+    private double defFlat;
+    private double breakRate;
+    private double defRate;
+    private double effectRes;
+    private String key;
 
-	public void addHpRate(double hpRate) {
-		this.hpRate += hpRate;
-	}
+    public void addHpFlat(double hpFlat) {
+        this.hpFlat += hpFlat;
+    }
 
-	public void addSpdFlat(double spdFlat) {
-		this.spdFlat += spdFlat;
-	}
+    public void addHpRate(double hpRate) {
+        this.hpRate += hpRate;
+    }
 
-	public void addAtkFlat(double atkFlat) {
-		this.atkFlat += atkFlat;
-	}
+    public void addSpdFlat(double spdFlat) {
+        this.spdFlat += spdFlat;
+    }
 
-	public void addCritRate(double critRate) {
-		this.critRate += critRate;
-	}
+    public void addAtkFlat(double atkFlat) {
+        this.atkFlat += atkFlat;
+    }
 
-	public void addAtkRate(double atkRate) {
-		this.atkRate += atkRate;
-	}
+    public void addCritRate(double critRate) {
+        this.critRate += critRate;
+    }
 
-	public void addCritDmg(double critDmg) {
-		this.critDmg += critDmg;
-	}
+    public void addAtkRate(double atkRate) {
+        this.atkRate += atkRate;
+    }
 
-	public void addEffectHit(double effectHit) {
-		this.effectHit += effectHit;
-	}
+    public void addCritDmg(double critDmg) {
+        this.critDmg += critDmg;
+    }
 
-	public void addDefFlat(double defFlat) {
-		this.defFlat += defFlat;
-	}
+    public void addEffectHit(double effectHit) {
+        this.effectHit += effectHit;
+    }
 
-	public void addBreakRate(double breakRate) {
-		this.breakRate += breakRate;
-	}
+    public void addDefFlat(double defFlat) {
+        this.defFlat += defFlat;
+    }
 
-	public void addDefRate(double defRate) {
-		this.defRate += defRate;
-	}
+    public void addBreakRate(double breakRate) {
+        this.breakRate += breakRate;
+    }
 
-	public void addEffectRes(double effectRes) {
-		this.effectRes += effectRes;
-	}
+    public void addDefRate(double defRate) {
+        this.defRate += defRate;
+    }
+
+    public void addEffectRes(double effectRes) {
+        this.effectRes += effectRes;
+    }
 }

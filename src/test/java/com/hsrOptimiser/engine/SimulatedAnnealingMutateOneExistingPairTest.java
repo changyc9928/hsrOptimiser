@@ -28,12 +28,6 @@ class SimulatedAnnealingMutateOneExistingPairTest {
 
     private ExistingPairMutationStrategy strategy;
 
-    @BeforeEach
-    void setUp() {
-        lenient().when(random.nextInt(anyInt())).thenReturn(0);
-        strategy = new ExistingPairMutationStrategy();
-    }
-
     private static Relic relic(String id, Slot slot, String setId, String location) {
         Relic relic = new Relic();
         relic.setUid(id);
@@ -42,6 +36,12 @@ class SimulatedAnnealingMutateOneExistingPairTest {
         relic.setLocation(location);
         relic.setRarity(5);
         return relic;
+    }
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(random.nextInt(anyInt())).thenReturn(0);
+        strategy = new ExistingPairMutationStrategy();
     }
 
     private void invokeMutateOneExistingPair(

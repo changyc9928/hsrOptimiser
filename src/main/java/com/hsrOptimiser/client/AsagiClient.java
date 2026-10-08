@@ -1,7 +1,5 @@
 package com.hsrOptimiser.client;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hsrOptimiser.DTO.asagi.MocRequest;
 import com.hsrOptimiser.DTO.asagi.MocResponse;
 import org.springframework.beans.factory.annotation.Autowired;

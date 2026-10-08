@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class Config {
+
     @Value("${asagi.url}")
     String asagiUrl;
 

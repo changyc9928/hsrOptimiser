@@ -6,9 +6,10 @@ import lombok.Data;
 
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class RelicMain{
-	private String body;
-	private String feet;
-	private String sphere;
-	private String rope;
+public class RelicMain {
+
+    private String body;
+    private String feet;
+    private String sphere;
+    private String rope;
 }

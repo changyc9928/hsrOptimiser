@@ -6,7 +6,7 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
-public class MemoryImpl implements Memory{
+public class MemoryImpl implements Memory {
 
     private final Map<String, ScannedData> memory = new HashMap<>();
 

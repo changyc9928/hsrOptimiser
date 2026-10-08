@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class MetaData implements Serializable {
+
     int uid;
     String trailblazer;
 }

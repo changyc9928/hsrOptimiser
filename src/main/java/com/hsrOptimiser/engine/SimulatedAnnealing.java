@@ -40,31 +40,70 @@ public class SimulatedAnnealing {
     private int epoch;
 
     /**
-     * Decides whether to accept a new state based on the Metropolis criterion.
+     * Metropolis acceptance criterion for Simulated Annealing.
      */
-    static boolean decideToAccept(double totalDamage, double currentDamage, double temperature) {
-        double deltaE = totalDamage - currentDamage;
-        if (deltaE > 0) {
+    static boolean decideToAccept(
+        double newDamage,
+        double currentDamage,
+        double temperature
+    ) {
+        // Always accept better solutions
+        if (newDamage > currentDamage) {
             return true;
         }
 
-        double scaledDelta = deltaE / 100000.0;
-        double probability = Math.exp(scaledDelta / temperature);
+        double deltaE = newDamage - currentDamage;
+
+        // Avoid division by zero / freezing issues
+        if (temperature <= 1e-12) {
+            return false;
+        }
+
+        double probability = Math.exp(deltaE / temperature);
+
+        log.debug("Temperature: {}, deltaE: {}, Probability: {}", temperature, deltaE, probability);
+
         return ThreadLocalRandom.current().nextDouble() < probability;
+    }
+
+    private static void applyAdaptiveThrottling(long startTime) {
+        long duration = System.currentTimeMillis() - startTime;
+        if (duration > 1500) {
+            try {
+                Thread.sleep(150);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    private static void validateRelicSets(MocRequest mocRequest) {
+        if (!isRelicSetValid(mocRequest)) {
+            throw new IllegalStateException(
+                "Invalid relic configuration: One or more character items contain null relic sets.");
+        }
+    }
+
+    private static boolean isRelicSetValid(MocRequest mocRequest) {
+        return mocRequest.getCharacters().stream()
+            .allMatch(item -> item.getRelicSet() != null
+                && item.getRelicSet().getOrnament() != null
+                && item.getRelicSet().getSet1() != null
+                && item.getRelicSet().getSet2() != null);
     }
 
     /**
      * Runs the simulated annealing optimization loop.
      */
     public SimulationResult simulateAnnealing(
-            ScannedData data,
-            AsagiClient asagiClient,
-            List<String> characterIds,
-            List<String> fixedCharacterIds,
-            List<String> allowedToScrapRelicsCharacterIds,
-            List<String> disallowedToScrapRelicsCharacterIds) {
+        ScannedData data,
+        AsagiClient asagiClient,
+        List<String> characterIds,
+        List<String> fixedCharacterIds,
+        List<String> allowedToScrapRelicsCharacterIds,
+        List<String> disallowedToScrapRelicsCharacterIds) {
         log.info("Starting Simulated Annealing optimization. Target Epochs: {}, Initial Temp: {}",
-                epoch, initialTemperature);
+            epoch, initialTemperature);
 
         ScannedData workingData = SerializationUtils.clone(data);
         MocRequest mocRequest = mocRequestFactory.createBaseRequest();
@@ -73,8 +112,8 @@ public class SimulatedAnnealing {
         // will be reassigned during rollback/retry below.
         final ScannedData initialData = workingData;
         mocRequest.setCharacters(characterIds.stream()
-                .map(characterId -> asagiCharacterMapper.map(initialData, characterId))
-                .toList());
+            .map(characterId -> asagiCharacterMapper.map(initialData, characterId))
+            .toList());
 
         AnnealingState state = new AnnealingState(epoch, initialTemperature, tempCoolingRate);
         RetryPolicy retryPolicy = new RetryPolicy();
@@ -89,15 +128,29 @@ public class SimulatedAnnealing {
 
             long startTime = System.currentTimeMillis();
 
+            if (!isRelicSetValid(mocRequest)) {
+                log.debug("Skipping MoC evaluation: incomplete relic set configuration after mutation");
+                workingData = SerializationUtils.clone(snapshot);
+                retryPolicy.recordSuccess();
+                performMutation(
+                    workingData,
+                    characterIds,
+                    fixedCharacterIds,
+                    allowedToScrapRelicsCharacterIds,
+                    disallowedToScrapRelicsCharacterIds);
+                continue;
+            }
+
             try {
                 validateRelicSets(mocRequest);
 
                 MocResponse mocResponse = asagiClient.calculateDamage(mocRequest);
                 double totalDamage = mocResponse.getT().stream()
-                        .mapToDouble(TItem::getTotal)
-                        .sum();
+                    .mapToDouble(TItem::getTotal)
+                    .sum();
 
-                boolean accepted = decideToAccept(totalDamage, state.getCurrentDamage(), state.getTemperature());
+                boolean accepted = decideToAccept(totalDamage, state.getCurrentDamage(),
+                    state.getTemperature());
 
                 if (accepted) {
                     handleAcceptedState(state, totalDamage);
@@ -114,119 +167,108 @@ public class SimulatedAnnealing {
             } catch (Exception e) {
                 retryPolicy.recordFailure();
                 log.warn("Simulation step dropped due to error: {}. Consecutive failures: {}",
-                        e.getMessage(), retryPolicy.getConsecutiveFailures());
+                    e.getMessage(), retryPolicy.getConsecutiveFailures());
                 workingData = SerializationUtils.clone(snapshot);
                 retryPolicy.applyBackoff();
             }
 
             performMutation(
-                    workingData,
-                    characterIds,
-                    fixedCharacterIds,
-                    allowedToScrapRelicsCharacterIds,
-                    disallowedToScrapRelicsCharacterIds);
+                workingData,
+                characterIds,
+                fixedCharacterIds,
+                allowedToScrapRelicsCharacterIds,
+                disallowedToScrapRelicsCharacterIds);
         }
 
         log.info("================================================================");
         log.info(String.format(
-                "Optimization Completed! Final Damage: %.2f after %d total mutations.",
-                state.getCurrentDamage(), state.getTotalSteps()));
+            "Optimization Completed! Final Damage: %.2f after %d total mutations.",
+            state.getCurrentDamage(), state.getTotalSteps()));
         log.info("================================================================");
 
         return new SimulationResult(snapshot, bestResponse);
     }
 
     private void handleAcceptedState(
-            AnnealingState state,
-            double totalDamage) {
+        AnnealingState state,
+        double totalDamage) {
         double delta = totalDamage - state.getCurrentDamage();
         state.accept(totalDamage);
 
         log.info(String.format(
-                "Epoch [%d/%d], Step [%d] | Temp: %.4f | Accepted Damage: %.2f (Delta: %+.2f)",
-                state.getCurrentEpoch(), state.getTotalEpochs(),
-                state.getTotalSteps(), state.getTemperature(),
-                state.getCurrentDamage(), delta));
+            "Epoch [%d/%d], Step [%d] | Temp: %.4f | Accepted Damage: %.2f (Delta: %+.2f)",
+            state.getCurrentEpoch(), state.getTotalEpochs(),
+            state.getTotalSteps(), state.getTemperature(),
+            state.getCurrentDamage(), delta));
     }
 
     private void handleRejectedState(AnnealingState state) {
         if (state.getTotalSteps() % 50 == 0) {
             log.info(String.format(
-                    "Epoch [%d/%d], Step [%d] | Temp: %.4f | [Skipped] Current Baseline: %.2f",
-                    state.getCurrentEpoch() + 1, state.getTotalEpochs(),
-                    state.getTotalSteps(), state.getTemperature(),
-                    state.getCurrentDamage()));
-        }
-    }
-
-    private static void applyAdaptiveThrottling(long startTime) {
-        long duration = System.currentTimeMillis() - startTime;
-        if (duration > 1500) {
-            try {
-                Thread.sleep(150);
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-            }
+                "Epoch [%d/%d], Step [%d] | Temp: %.4f | [Skipped] Current Baseline: %.2f",
+                state.getCurrentEpoch() + 1, state.getTotalEpochs(),
+                state.getTotalSteps(), state.getTemperature(),
+                state.getCurrentDamage()));
         }
     }
 
     private void performMutation(
-            ScannedData scannedData,
-            List<String> characterIds,
-            List<String> fixedCharacterIds,
-            List<String> allowedToScrapRelicsCharacterIds,
-            List<String> disallowedToScrapRelicsCharacterIds) {
+        ScannedData scannedData,
+        List<String> characterIds,
+        List<String> fixedCharacterIds,
+        List<String> allowedToScrapRelicsCharacterIds,
+        List<String> disallowedToScrapRelicsCharacterIds) {
         List<String> filteredCharacters = characterIds.stream()
-                .filter(id -> !fixedCharacterIds.contains(id))
-                .toList();
+            .filter(id -> !fixedCharacterIds.contains(id))
+            .toList();
 
         Random random = ThreadLocalRandom.current();
         String randomChar = filteredCharacters.get(random.nextInt(filteredCharacters.size()));
 
         HSRCharacter character = scannedData.getCharacters().stream()
-                .filter(c -> c.getId().equals(randomChar))
-                .findFirst()
-                .orElseThrow();
+            .filter(c -> c.getId().equals(randomChar))
+            .findFirst()
+            .orElseThrow();
 
         Set<String> allowed = new HashSet<>(allowedToScrapRelicsCharacterIds);
         Set<String> disallowed = new HashSet<>(disallowedToScrapRelicsCharacterIds);
 
         MutationContext context = new MutationContext(
-                randomChar,
-                character.getAbilityVersion(),
-                allowed,
-                disallowed,
-                random);
+            randomChar,
+            character.getAbilityVersion(),
+            allowed,
+            disallowed,
+            random);
 
         RelicMutationStrategy strategy = mutationSelector.select(random);
         strategy.mutate(scannedData, context);
     }
 
     private void updateRequestWithSubstats(
-            MocRequest mocRequest,
-            ScannedData scannedData,
-            List<String> characterIds) {
+        MocRequest mocRequest,
+        ScannedData scannedData,
+        List<String> characterIds) {
         mocRequest.setTotalSubStatus(
-                characterIds.stream()
-                        .map(characterId -> getTotalSubStats(characterId, scannedData))
-                        .toList());
+            characterIds.stream()
+                .map(characterId -> getTotalSubStats(characterId, scannedData))
+                .toList());
     }
 
     private TotalSubStats getTotalSubStats(String characterId, ScannedData scannedData) {
         HSRCharacter hsrCharacter = scannedData.getCharacters().stream()
-                .filter(c -> c.getId().equals(characterId))
-                .findFirst()
-                .orElseThrow();
+            .filter(c -> c.getId().equals(characterId))
+            .findFirst()
+            .orElseThrow();
 
         TotalSubStats totalSubStats = new TotalSubStats();
         totalSubStats.setKey(
-                AsagiCharacterMetadata.getInfoById(characterId, hsrCharacter.getAbilityVersion())
-                        .getDisplayName());
+            AsagiCharacterMetadata.getInfoById(characterId, hsrCharacter.getAbilityVersion())
+                .getDisplayName());
 
         SubStatAggregator.accumulateFromRelics(
-                totalSubStats,
-                scannedData.getRelics(),
-                characterId);
+            totalSubStats,
+            scannedData.getRelics(),
+            characterId);
 
         return totalSubStats;
     }
@@ -234,18 +276,6 @@ public class SimulatedAnnealing {
     private void applyRelicsToRequest(MocRequest mocRequest, ScannedData scannedData) {
         for (CharactersItem c : mocRequest.getCharacters()) {
             asagiCharacterMapper.applyRelics(c, scannedData, c.getId());
-        }
-    }
-
-    private static void validateRelicSets(MocRequest mocRequest) {
-        boolean missingSets = mocRequest.getCharacters().stream().anyMatch(item -> item.getRelicSet() == null
-                || item.getRelicSet().getOrnament() == null
-                || item.getRelicSet().getSet1() == null
-                || item.getRelicSet().getSet2() == null);
-
-        if (missingSets) {
-            throw new IllegalStateException(
-                    "Invalid relic configuration: One or more character items contain null relic sets.");
         }
     }
 

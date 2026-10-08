@@ -12,8 +12,8 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
- * Mutates a single relic: picks a random equipped relic, then replaces it
- * with a random matching unequipped relic of the same set and slot.
+ * Mutates a single relic: picks a random equipped relic, then replaces it with a random matching
+ * unequipped relic of the same set and slot.
  */
 @Component
 public class SingleRelicMutationStrategy implements RelicMutationStrategy {
@@ -29,9 +29,9 @@ public class SingleRelicMutationStrategy implements RelicMutationStrategy {
 
         // Pick a random equipped relic (reservoir sampling)
         Relic sourceRelic = RelicAvailabilityHelper.reservoirSample(
-                relics,
-                r -> characterId.equals(r.getLocation()),
-                random);
+            relics,
+            r -> characterId.equals(r.getLocation()),
+            random);
 
         if (sourceRelic == null) {
             return;
@@ -41,7 +41,7 @@ public class SingleRelicMutationStrategy implements RelicMutationStrategy {
         Slot slot = sourceRelic.getSlot();
 
         String mainStat = AsagiCharacterMetadata.getInfoById(characterId, abilityVersion)
-                .getAttackType() + " DMG Boost";
+            .getAttackType() + " DMG Boost";
 
         Set<String> allowedSphereStats = Set.of(mainStat, "ATK", "DEF", "HP");
 
@@ -51,7 +51,7 @@ public class SingleRelicMutationStrategy implements RelicMutationStrategy {
 
         for (Relic r : relics) {
             boolean scrapable = r == sourceRelic
-                    || RelicAvailabilityHelper.isAvailable(r, allowed, disallowed);
+                || RelicAvailabilityHelper.isAvailable(r, allowed, disallowed);
 
             if (!scrapable) {
                 continue;

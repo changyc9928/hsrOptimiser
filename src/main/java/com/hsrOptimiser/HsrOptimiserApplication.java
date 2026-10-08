@@ -1,6 +1,5 @@
 package com.hsrOptimiser;
 
-import com.hsrOptimiser.clientConfig.AsagiCharacterMetadata;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class SubStats implements Serializable {
+
     String key;
     double value;
     int count;

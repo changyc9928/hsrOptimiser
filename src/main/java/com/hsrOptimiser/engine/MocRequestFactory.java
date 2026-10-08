@@ -5,8 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
- * Factory for creating base {@link MocRequest} instances with standard
- * configuration.
+ * Factory for creating base {@link MocRequest} instances with standard configuration.
  */
 @Component
 public class MocRequestFactory {
@@ -17,7 +16,7 @@ public class MocRequestFactory {
         request.setRound(6);
 
         List<String> universalWeaks = List.of(
-                "Physical", "Fire", "Ice", "Wind", "Lightning", "Imaginary", "Quantum");
+            "Physical", "Fire", "Ice", "Wind", "Lightning", "Imaginary", "Quantum");
         request.setBossWeaks(universalWeaks);
         request.setBoss2Weaks(universalWeaks);
         request.setFollowerWeaks(universalWeaks);

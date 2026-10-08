@@ -26,9 +26,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * Comprehensive tests for {@link PlanarPairMutationStrategy}.
  *
  * <p>
- * These tests cover the bug where the strategy was unequipping ALL relics
- * instead of only planar relics (PlanarSphere + LinkRope), plus edge cases
- * and optimizer invariants.
+ * These tests cover the bug where the strategy was unequipping ALL relics instead of only planar
+ * relics (PlanarSphere + LinkRope), plus edge cases and optimizer invariants.
  */
 @ExtendWith(MockitoExtension.class)
 class PlanarPairMutationStrategyTest {
@@ -63,7 +62,7 @@ class PlanarPairMutationStrategyTest {
     }
 
     private Relic relicWithMainStat(String uid, String setId, Slot slot,
-            String location, String mainStat) {
+        String location, String mainStat) {
         Relic r = relic(uid, setId, slot, location);
         r.setMainstat(mainStat);
         return r;
@@ -81,14 +80,14 @@ class PlanarPairMutationStrategyTest {
 
     private List<Relic> equippedRelics(ScannedData data, String characterId) {
         return data.getRelics().stream()
-                .filter(r -> characterId.equals(r.getLocation()))
-                .toList();
+            .filter(r -> characterId.equals(r.getLocation()))
+            .toList();
     }
 
     private Set<Slot> equippedSlots(ScannedData data, String characterId) {
         return equippedRelics(data, characterId).stream()
-                .map(Relic::getSlot)
-                .collect(Collectors.toSet());
+            .map(Relic::getSlot)
+            .collect(Collectors.toSet());
     }
 
     // -----------------------------------------------------------------------
@@ -103,7 +102,8 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         // Available replacement planar set
@@ -111,7 +111,7 @@ class PlanarPairMutationStrategyTest {
         Relic newRope = relic("r100", "999", Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
+            head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
@@ -137,14 +137,15 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         Relic newSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, "", "ATK");
         Relic newRope = relic("r100", "999", Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
+            head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
@@ -158,21 +159,22 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         Relic newSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, "", "ATK");
         Relic newRope = relic("r100", "999", Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
+            head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
         Set<Slot> slots = equippedSlots(data, TARGET_CHARACTER);
         assertThat(slots).containsExactlyInAnyOrder(
-                Slot.Head, Slot.Hands, Slot.Body, Slot.Feet,
-                Slot.PlanarSphere, Slot.LinkRope);
+            Slot.Head, Slot.Hands, Slot.Body, Slot.Feet,
+            Slot.PlanarSphere, Slot.LinkRope);
     }
 
     // -----------------------------------------------------------------------
@@ -187,12 +189,14 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         // Other character 8010
         Relic otherHead = relic("oh1", "200", Slot.Head, OTHER_CHARACTER);
-        Relic otherSphere = relicWithMainStat("os1", "200", Slot.PlanarSphere, OTHER_CHARACTER, "HP");
+        Relic otherSphere = relicWithMainStat("os1", "200", Slot.PlanarSphere, OTHER_CHARACTER,
+            "HP");
         Relic otherRope = relic("or1", "200", Slot.LinkRope, OTHER_CHARACTER);
         Relic otherBody = relic("ob1", "200", Slot.Body, OTHER_CHARACTER);
 
@@ -201,9 +205,9 @@ class PlanarPairMutationStrategyTest {
         Relic newRope = relic("r100", "999", Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope,
-                otherHead, otherSphere, otherRope, otherBody,
-                newSphere, newRope));
+            head, hands, body, feet, oldSphere, oldRope,
+            otherHead, otherSphere, otherRope, otherBody,
+            newSphere, newRope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
@@ -221,21 +225,22 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         Relic newSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, "", "ATK");
         Relic newRope = relic("r100", "999", Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
+            head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
         // Each relic uid should appear exactly once in the list
         long s100Count = data.getRelics().stream()
-                .filter(r -> "s100".equals(r.getUid()))
-                .count();
+            .filter(r -> "s100".equals(r.getUid()))
+            .count();
         assertThat(s100Count).isEqualTo(1);
         assertThat(newSphere.getLocation()).isEqualTo(TARGET_CHARACTER);
     }
@@ -247,20 +252,21 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         Relic newSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, "", "ATK");
         Relic newRope = relic("r100", "999", Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
+            head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
         List<String> equippedUids = equippedRelics(data, TARGET_CHARACTER).stream()
-                .map(Relic::getUid)
-                .toList();
+            .map(Relic::getUid)
+            .toList();
 
         assertThat(equippedUids).hasSameSizeAs(new HashSet<>(equippedUids));
     }
@@ -276,14 +282,15 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         // Only spheres available, no ropes
         Relic orphanSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, "", "ATK");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope, orphanSphere));
+            head, hands, body, feet, oldSphere, oldRope, orphanSphere));
 
         // Snapshot before mutation
         String oldSphereLoc = oldSphere.getLocation();
@@ -304,14 +311,15 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         // Only ropes available, no spheres
         Relic orphanRope = relic("r100", "999", Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope, orphanRope));
+            head, hands, body, feet, oldSphere, oldRope, orphanRope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
@@ -327,18 +335,20 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         // Spheres exist but none have a compatible main stat
         // (pickSphere filters by attackMainStat/HP/ATK/DEF)
-        Relic fireSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, "", "Fire DMG Boost");
+        Relic fireSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, "",
+            "Fire DMG Boost");
         Relic iceSphere = relicWithMainStat("s101", "999", Slot.PlanarSphere, "", "Ice DMG Boost");
         Relic rope = relic("r100", "999", Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope,
-                fireSphere, iceSphere, rope));
+            head, hands, body, feet, oldSphere, oldRope,
+            fireSphere, iceSphere, rope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
@@ -365,7 +375,7 @@ class PlanarPairMutationStrategyTest {
         Relic newRope = relic("r100", "999", Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, newSphere, newRope));
+            head, hands, body, feet, newSphere, newRope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
@@ -387,7 +397,8 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         // The "new" set is the same as the old set (same set id)
@@ -395,7 +406,7 @@ class PlanarPairMutationStrategyTest {
         Relic sameRope = relic("r100", "317", Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope, sameSphere, sameRope));
+            head, hands, body, feet, oldSphere, oldRope, sameSphere, sameRope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
@@ -413,7 +424,8 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         // 4-star sphere and rope (should be ignored)
@@ -423,8 +435,8 @@ class PlanarPairMutationStrategyTest {
         fourStarRope.setRarity(4);
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope,
-                fourStarSphere, fourStarRope));
+            head, hands, body, feet, oldSphere, oldRope,
+            fourStarSphere, fourStarRope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
@@ -440,7 +452,8 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         // Relics with null set id
@@ -448,8 +461,8 @@ class PlanarPairMutationStrategyTest {
         Relic nullSetRope = relic("r100", null, Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope,
-                nullSetSphere, nullSetRope));
+            head, hands, body, feet, oldSphere, oldRope,
+            nullSetSphere, nullSetRope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
@@ -484,9 +497,9 @@ class PlanarPairMutationStrategyTest {
         Relic newRope = relic("r100", "999", Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                h1, ha1, b1, f1, s1, r1,
-                oh1, oha1, ob1, of1, os1, or1,
-                newSphere, newRope));
+            h1, ha1, b1, f1, s1, r1,
+            oh1, oha1, ob1, of1, os1, or1,
+            newSphere, newRope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
@@ -496,25 +509,25 @@ class PlanarPairMutationStrategyTest {
 
         // --- Invariant: every character has all 6 slots ---
         assertThat(equippedSlots(data, TARGET_CHARACTER)).containsExactlyInAnyOrder(
-                Slot.Head, Slot.Hands, Slot.Body, Slot.Feet,
-                Slot.PlanarSphere, Slot.LinkRope);
+            Slot.Head, Slot.Hands, Slot.Body, Slot.Feet,
+            Slot.PlanarSphere, Slot.LinkRope);
         assertThat(equippedSlots(data, OTHER_CHARACTER)).containsExactlyInAnyOrder(
-                Slot.Head, Slot.Hands, Slot.Body, Slot.Feet,
-                Slot.PlanarSphere, Slot.LinkRope);
+            Slot.Head, Slot.Hands, Slot.Body, Slot.Feet,
+            Slot.PlanarSphere, Slot.LinkRope);
 
         // --- Invariant: no duplicate relic uids across equipped relics ---
         List<String> allEquippedUids = new ArrayList<>();
         allEquippedUids.addAll(
-                equippedRelics(data, TARGET_CHARACTER).stream().map(Relic::getUid).toList());
+            equippedRelics(data, TARGET_CHARACTER).stream().map(Relic::getUid).toList());
         allEquippedUids.addAll(
-                equippedRelics(data, OTHER_CHARACTER).stream().map(Relic::getUid).toList());
+            equippedRelics(data, OTHER_CHARACTER).stream().map(Relic::getUid).toList());
         assertThat(allEquippedUids).hasSameSizeAs(new HashSet<>(allEquippedUids));
 
         // --- Invariant: each relic has at most one owner ---
         for (Relic relic : data.getRelics()) {
             long ownerCount = data.getRelics().stream()
-                    .filter(r -> r == relic)
-                    .count();
+                .filter(r -> r == relic)
+                .count();
             assertThat(ownerCount).isEqualTo(1);
         }
     }
@@ -530,18 +543,20 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         // New planar relics owned by an allowed character
-        Relic newSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, OTHER_CHARACTER, "ATK");
+        Relic newSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, OTHER_CHARACTER,
+            "ATK");
         Relic newRope = relic("r100", "999", Slot.LinkRope, OTHER_CHARACTER);
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
+            head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
 
         MutationContext context = new MutationContext(
-                TARGET_CHARACTER, 0, Set.of(OTHER_CHARACTER), Set.of(), random);
+            TARGET_CHARACTER, 0, Set.of(OTHER_CHARACTER), Set.of(), random);
 
         strategy.mutate(data, context);
 
@@ -562,18 +577,20 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         // New planar relics owned by a disallowed character
-        Relic newSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, OTHER_CHARACTER, "ATK");
+        Relic newSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, OTHER_CHARACTER,
+            "ATK");
         Relic newRope = relic("r100", "999", Slot.LinkRope, OTHER_CHARACTER);
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
+            head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
 
         MutationContext context = new MutationContext(
-                TARGET_CHARACTER, 0, Set.of(), Set.of(OTHER_CHARACTER), random);
+            TARGET_CHARACTER, 0, Set.of(), Set.of(OTHER_CHARACTER), random);
 
         strategy.mutate(data, context);
 
@@ -599,14 +616,15 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         Relic newSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, "", "ATK");
         Relic newRope = relic("r100", "999", Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
+            head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
@@ -629,7 +647,8 @@ class PlanarPairMutationStrategyTest {
         Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
         Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
         Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+        Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+            "ATK");
         Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
 
         // Two valid planar sets available
@@ -639,8 +658,8 @@ class PlanarPairMutationStrategyTest {
         Relic ropeB = relic("rb", "B", Slot.LinkRope, "");
 
         ScannedData data = dataWithRelics(List.of(
-                head, hands, body, feet, oldSphere, oldRope,
-                sphereA, ropeA, sphereB, ropeB));
+            head, hands, body, feet, oldSphere, oldRope,
+            sphereA, ropeA, sphereB, ropeB));
 
         strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
@@ -649,8 +668,8 @@ class PlanarPairMutationStrategyTest {
         assertThat(equipped).hasSize(6);
 
         List<Relic> equippedPlanars = equipped.stream()
-                .filter(r -> r.getSlot() == Slot.PlanarSphere || r.getSlot() == Slot.LinkRope)
-                .toList();
+            .filter(r -> r.getSlot() == Slot.PlanarSphere || r.getSlot() == Slot.LinkRope)
+            .toList();
         assertThat(equippedPlanars).hasSize(2);
 
         // Both should be from the same set
@@ -708,19 +727,20 @@ class PlanarPairMutationStrategyTest {
             Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
             Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
             Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-            Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+            Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+                "ATK");
             Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
             Relic newSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, "", "ATK");
             Relic newRope = relic("r100", "999", Slot.LinkRope, "");
 
             ScannedData data = dataWithRelics(List.of(
-                    head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
+                head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
 
             strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
             long headCount = equippedRelics(data, TARGET_CHARACTER).stream()
-                    .filter(r -> r.getSlot() == Slot.Head)
-                    .count();
+                .filter(r -> r.getSlot() == Slot.Head)
+                .count();
             assertThat(headCount).isEqualTo(1);
         }
 
@@ -731,19 +751,20 @@ class PlanarPairMutationStrategyTest {
             Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
             Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
             Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-            Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+            Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+                "ATK");
             Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
             Relic newSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, "", "ATK");
             Relic newRope = relic("r100", "999", Slot.LinkRope, "");
 
             ScannedData data = dataWithRelics(List.of(
-                    head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
+                head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
 
             strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
             long sphereCount = equippedRelics(data, TARGET_CHARACTER).stream()
-                    .filter(r -> r.getSlot() == Slot.PlanarSphere)
-                    .count();
+                .filter(r -> r.getSlot() == Slot.PlanarSphere)
+                .count();
             assertThat(sphereCount).isEqualTo(1);
         }
 
@@ -754,19 +775,20 @@ class PlanarPairMutationStrategyTest {
             Relic hands = relic("ha1", "115", Slot.Hands, TARGET_CHARACTER);
             Relic body = relic("b1", "130", Slot.Body, TARGET_CHARACTER);
             Relic feet = relic("f1", "130", Slot.Feet, TARGET_CHARACTER);
-            Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER, "ATK");
+            Relic oldSphere = relicWithMainStat("s1", "317", Slot.PlanarSphere, TARGET_CHARACTER,
+                "ATK");
             Relic oldRope = relic("r1", "317", Slot.LinkRope, TARGET_CHARACTER);
             Relic newSphere = relicWithMainStat("s100", "999", Slot.PlanarSphere, "", "ATK");
             Relic newRope = relic("r100", "999", Slot.LinkRope, "");
 
             ScannedData data = dataWithRelics(List.of(
-                    head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
+                head, hands, body, feet, oldSphere, oldRope, newSphere, newRope));
 
             strategy.mutate(data, defaultContext(TARGET_CHARACTER));
 
             long ropeCount = equippedRelics(data, TARGET_CHARACTER).stream()
-                    .filter(r -> r.getSlot() == Slot.LinkRope)
-                    .count();
+                .filter(r -> r.getSlot() == Slot.LinkRope)
+                .count();
             assertThat(ropeCount).isEqualTo(1);
         }
     }

@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 public class EvaluationResult {
+
     double totalDamage;
     List<CharacterDamage> characterDamage;
 }
