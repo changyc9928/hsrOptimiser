@@ -1,3 +1,113 @@
 # hsrOptimiser
 
-Relic optimiser for Honkai: Star Rail
+Relic optimiser for Honkai: Star Rail.
+
+Evaluates a team of HSR characters against a given relic inventory, and searches for better relic equips using simulated annealing against the [asagi damage-calc simulator](https://honkai.asagi-game.com).
+
+## Stack
+
+- Java 17 + Spring Boot 3.3.4
+- Spring Web + WebClient (calls asagi)
+- Redis (in-memory eval progress, statuses and temp tokens)
+- RabbitMQ (async evaluate-job queue)
+- Maven
+
+## Data sources
+
+- Game metadata: [Mar-7th/StarRailRes](https://github.com/Mar-7th/StarRailRes) (derived from [Dimbreath/StarRailData](https://github.com/DimbreathBot/TurnBasedGameData))
+- Light-cone / character / relic-set identifiers and SA tuning tables: extracted from the live asagi web app bundle.
+- Repo has hard-coded enums regenerated from the above at `src/main/java/com/hsrOptimiser/clientConfig/`.
+
+## Config
+
+`src/main/resources/application.yml`:
+
+```yaml
+asagi:
+  url: "https://honkai.asagi-game.com"
+
+simulated-annealing:
+  initial-temperature: 250000
+  cooling-rate: 0.95
+  epoch: 32
+```
+
+Recommended defaults based on real-scan sweeps: `epoch=32, cooling-rate=0.95` (~40–60 s per eval). Raising to `epoch=64, cooling-rate=0.90` is ~3.5 min for marginally better damage.
+
+## Run
+
+1. Start rabbitmq (redis must be up on localhost:6379):
+
+   ```bash
+   docker compose up -d
+   ```
+
+2. Build & run:
+
+   ```bash
+   mvn compile
+   mvn spring-boot:run
+   ```
+
+Default port 8080.
+
+## API
+
+### Auth
+
+No accounts. Get a temp token (TTL 24h, Redis):
+
+```bash
+curl http://localhost:8080/auth/token
+```
+
+Use as bearer: `Authorization: Bearer <token>` on `/data/**` and `/evaluate/**`. Missing/invalid → 401.
+
+### Upload scanned data
+
+```bash
+curl -X POST http://localhost:8080/data/upload \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@scanned.json"
+```
+
+Response: `{numCharacters, numLightCones, numRelics}`.
+
+### Start async optimize job
+
+```bash
+curl -X POST http://localhost:8080/evaluate \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{
+        "characterIds": ["1308","1310","1407","1505"],
+        "fixedCharacterIds": [],
+        "allowedToScrapRelicsCharacterIds": ["1308","1310","1407","1505"],
+        "disallowedToScrapRelicsCharacterIds": []
+      }'
+```
+
+Response: `{jobId, status:"queued"}`.
+
+### Poll status / progress
+
+```bash
+curl http://localhost:8080/evaluate/$JOBID/status \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Returns `{status: running|finished|failed, progress: {total_steps, current_epoch, total_epochs, temperature, current_damage}}`.
+
+### Fetch result
+
+```bash
+curl http://localhost:8080/evaluate/$JOBID/result \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Returns `EvaluationResult {total_damage, character_damage: [{name, total_damage, relics}] }` once `status=finished`.
+
+## Dev notes
+
+- `EvaluationServiceImpl.evaluateAsagi(..., null)` runs a single SA sync (used by tests and direct invocation); the async pipeline wraps the same path.
+- Engine strategies: `SingleRelicMutationStrategy` ~70%, `ExistingPairMutationStrategy` 20%, `PlanarPairMutationStrategy` 5%, `CavernSetMutationStrategy` 5%. Mutation only touches permitted relic pools (`allowedToScrapRelicsCharacterIds` / `disallowedToScrapRelicsCharacterIds`).
