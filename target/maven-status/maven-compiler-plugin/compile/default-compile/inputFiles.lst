@@ -2,6 +2,7 @@
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/DTO/CharacterDamage.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/DTO/CharacterStats.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/DTO/EnemySetup.java
+/Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/DTO/EvaluateJobRequest.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/DTO/EvaluateRequest.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/DTO/EvaluateRequestV2.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/DTO/EvaluationResult.java
@@ -36,7 +37,11 @@
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/clientConfig/AsagiCharacterMetadata.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/clientConfig/AsagiLightConeMetadata.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/clientConfig/AsagiRelicSetMetadata.java
+/Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/config/AuthInterceptor.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/config/Config.java
+/Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/config/RabbitMqConfig.java
+/Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/config/WebConfig.java
+/Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/controller/AuthController.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/controller/DataInputController.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/controller/EvaluateController.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/controller/GlobalExceptionHandler.java
@@ -54,9 +59,11 @@
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/engine/strategies/ExistingPairMutationStrategy.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/engine/strategies/PlanarPairMutationStrategy.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/engine/strategies/SingleRelicMutationStrategy.java
+/Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/jobs/EvaluateJobConsumer.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/mapper/AsagiCharactersItemMapper.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/mapper/AsagiLightConeMapper.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/services/AsagiRelicBuildService.java
+/Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/services/EvaluateStatusService.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/services/EvaluationService.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/services/EvaluationServiceImpl.java
 /Users/yincheng.chang/hsrOptimiser/src/main/java/com/hsrOptimiser/services/Memory.java

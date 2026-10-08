@@ -25,9 +25,9 @@ public class DataInputController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @PostMapping("/upload/{userId}")
+    @PostMapping("/upload")
     public ResponseEntity<ApiResponse<ScannedDataSize>> uploadV2(
-        @PathVariable String userId,
+        @org.springframework.web.bind.annotation.RequestAttribute("userId") String userId,
         @RequestParam("file") MultipartFile file) throws IOException {
         ScannedData scannedData = objectMapper.readValue(file.getInputStream(), ScannedData.class);
         memory.insertMemory(userId, scannedData);

@@ -17,7 +17,9 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.SerializationUtils;
 
@@ -30,6 +32,9 @@ public class SimulatedAnnealing {
     private final MocRequestFactory mocRequestFactory;
     private final MutationStrategySelector mutationSelector;
 
+    @Autowired(required = false)
+    private RedisTemplate<String, Object> redisTemplate;
+
     @Value("${simulated-annealing.initial-temperature}")
     private double initialTemperature;
 
@@ -38,6 +43,23 @@ public class SimulatedAnnealing {
 
     @Value("${simulated-annealing.epoch}")
     private int epoch;
+
+    public void publishProgress(String jobId, AnnealingState state) {
+        if (jobId == null || redisTemplate == null) {
+            return;
+        }
+        try {
+            var entries = new java.util.LinkedHashMap<String, Object>();
+            entries.put("total_steps", state.getTotalSteps());
+            entries.put("current_epoch", state.getCurrentEpoch());
+            entries.put("total_epochs", state.getTotalEpochs());
+            entries.put("temperature", state.getTemperature());
+            entries.put("current_damage", state.getCurrentDamage());
+            redisTemplate.opsForHash().putAll("evaluate:progress:" + jobId, entries);
+        } catch (Exception e) {
+            log.warn("Failed to publish SA progress: {}", e.getMessage());
+        }
+    }
 
     /**
      * Metropolis acceptance criterion for Simulated Annealing.
@@ -101,7 +123,8 @@ public class SimulatedAnnealing {
         List<String> characterIds,
         List<String> fixedCharacterIds,
         List<String> allowedToScrapRelicsCharacterIds,
-        List<String> disallowedToScrapRelicsCharacterIds) {
+        List<String> disallowedToScrapRelicsCharacterIds,
+        String jobId) {
         log.info("Starting Simulated Annealing optimization. Target Epochs: {}, Initial Temp: {}",
             epoch, initialTemperature);
 
@@ -171,6 +194,8 @@ public class SimulatedAnnealing {
                 workingData = SerializationUtils.clone(snapshot);
                 retryPolicy.applyBackoff();
             }
+
+            publishProgress(jobId, state);
 
             performMutation(
                 workingData,

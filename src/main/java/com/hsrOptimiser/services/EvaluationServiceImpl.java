@@ -36,11 +36,12 @@ public class EvaluationServiceImpl implements EvaluationService {
     public EvaluationResult evaluateAsagi(String userId, List<String> characterIds,
         List<String> fixedCharacterIds,
         List<String> allowedToScrapRelicsCharacterIds,
-        List<String> disallowedToScrapRelicsCharacterIds) {
+        List<String> disallowedToScrapRelicsCharacterIds,
+        String jobId) {
         ScannedData scannedData = memory.getMemory(userId);
         SimulationResult simulationResult = simulatedAnnealing.simulateAnnealing(scannedData,
             asagiClient, characterIds, fixedCharacterIds, allowedToScrapRelicsCharacterIds,
-            disallowedToScrapRelicsCharacterIds);
+            disallowedToScrapRelicsCharacterIds, jobId);
         EvaluationResult evaluationResult = new EvaluationResult();
         evaluationResult.setTotalDamage(
             simulationResult.mocResponse().getT().stream().map(TItem::getTotal)
