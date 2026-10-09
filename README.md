@@ -107,6 +107,37 @@ curl http://localhost:8080/evaluate/$JOBID/result \
 
 Returns `EvaluationResult {total_damage, character_damage: [{name, total_damage, relics}] }` once `status=finished`.
 
+### Loadout (light cones & relics)
+
+All responses return the character's full loadout `{character, lightCone, relics}`.
+
+```bash
+# view
+curl http://localhost:8080/loadout/1308 -H "Authorization: Bearer $TOKEN"
+# equip light cone (moves it from whoever holds it)
+curl -X POST http://localhost:8080/loadout/1308/lightcone \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"lightConeUid":"14"}'
+# replace full relic set (max 6, one per slot)
+curl -X PUT http://localhost:8080/loadout/1308/relics \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"relicUids":["6749","7312","7442","7506","713","10246"]}'
+# unequip
+curl -X DELETE http://localhost:8080/loadout/1308/lightcone -H "Authorization: Bearer $TOKEN"
+curl -X DELETE http://localhost:8080/loadout/1308/relics -H "Authorization: Bearer $TOKEN"
+```
+
+### Team
+
+```bash
+curl -X PUT http://localhost:8080/team \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"characterIds":["1308","1310","1407","1505"]}'
+curl http://localhost:8080/team -H "Authorization: Bearer $TOKEN"
+```
+
+Team holds 1–4 unique owned characters.
+
 ## Dev notes
 
 - `EvaluationServiceImpl.evaluateAsagi(..., null)` runs a single SA sync (used by tests and direct invocation); the async pipeline wraps the same path.
