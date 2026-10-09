@@ -138,6 +138,29 @@ curl http://localhost:8080/team -H "Authorization: Bearer $TOKEN"
 
 Team holds 1–4 unique owned characters.
 
+### Inventory (add items)
+
+```bash
+# add light cone (level + superimposition 1-5; id must exist in game data)
+curl -X POST http://localhost:8080/inventory/lightcones \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"id":"23000","level":80,"superimposition":5}'
+# add character (level + eidolon 0-6 + skill levels)
+curl -X POST http://localhost:8080/inventory/characters \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"id":"1506","level":80,"eidolon":0,
+       "skills":{"basic":6,"skill":10,"ult":10,"talent":10,"elation":10}}'
+# add relic (level + mainstat + substats with values)
+curl -X POST http://localhost:8080/inventory/relics \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"setId":"129","slot":"Body","level":15,"mainstat":"CRIT DMG",
+       "substats":[{"key":"CRIT Rate_","value":10.3,"count":1,"step":1}]}'
+```
+
+All three accept optional `uid` (auto-generated if omitted), `name` (defaults
+to game-data name), and `location` (a character id to equip immediately).
+Ids are validated against game data; unknown id/set/slot/stat names are rejected.
+
 ## Dev notes
 
 - `EvaluationServiceImpl.evaluateAsagi(..., null)` runs a single SA sync (used by tests and direct invocation); the async pipeline wraps the same path.

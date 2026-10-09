@@ -1,18 +1,28 @@
 package com.hsrOptimiser.services;
 
 import com.hsrOptimiser.DTO.LoadoutDTO;
+import com.hsrOptimiser.DTO.CreateCharacterRequest;
+import com.hsrOptimiser.DTO.CreateLightConeRequest;
+import com.hsrOptimiser.DTO.CreateRelicRequest;
+import com.hsrOptimiser.DTO.hsrScanner.CharacterSkills;
+import com.hsrOptimiser.DTO.hsrScanner.CharacterTraces;
 import com.hsrOptimiser.DTO.hsrScanner.HSRCharacter;
 import com.hsrOptimiser.DTO.hsrScanner.LightCone;
 import com.hsrOptimiser.DTO.hsrScanner.Relic;
 import com.hsrOptimiser.DTO.hsrScanner.ScannedData;
 import com.hsrOptimiser.DTO.hsrScanner.Slot;
+import com.hsrOptimiser.DTO.hsrScanner.SubStats;
+import com.hsrOptimiser.clientConfig.AsagiCharacterMetadata;
+import com.hsrOptimiser.clientConfig.AsagiLightConeMetadata;
+import com.hsrOptimiser.clientConfig.AsagiRelicSetMetadata;
+import com.hsrOptimiser.engine.SubStatAggregator;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -130,5 +140,167 @@ public class LoadoutServiceImpl implements LoadoutService {
         return data.getRelics().stream()
             .filter(r -> characterId.equals(r.getLocation()))
             .toList();
+    }
+
+    @Override
+    public LightCone addLightCone(String userId, CreateLightConeRequest request) {
+        ScannedData data = requireData(userId);
+        if (request.getId() == null) {
+            throw new IllegalArgumentException("Light cone id must not be null");
+        }
+        AsagiLightConeMetadata info;
+        try {
+            info = AsagiLightConeMetadata.getInfoById(request.getId());
+        } catch (EnumConstantNotPresentException e) {
+            throw new IllegalArgumentException("Unknown light cone id: " + request.getId());
+        }
+        String uid = requireUniqueUid(
+            data.getLightCones().stream().map(LightCone::getUid).toList(), request.getUid());
+        int superimposition = request.getSuperimposition() == null ? 1
+            : request.getSuperimposition();
+        if (superimposition < 1 || superimposition > 5) {
+            throw new IllegalArgumentException("Superimposition must be between 1 and 5");
+        }
+        String location = request.getLocation() == null ? "" : request.getLocation();
+        if (!location.isEmpty()) {
+            requireCharacter(data, location);
+        }
+        LightCone cone = new LightCone();
+        cone.setId(request.getId());
+        cone.setName(request.getName() == null ? info.getInternalName() : request.getName());
+        cone.setLevel(request.getLevel() == null ? 1 : request.getLevel());
+        cone.setAscension(request.getAscension() == null ? 0 : request.getAscension());
+        cone.setSuperimposition(superimposition);
+        cone.setLocation(location);
+        cone.setLock(request.getLock() != null && request.getLock());
+        cone.setUid(uid);
+        data.getLightCones().add(cone);
+        return cone;
+    }
+
+    @Override
+    public HSRCharacter addCharacter(String userId, CreateCharacterRequest request) {
+        ScannedData data = requireData(userId);
+        if (request.getId() == null) {
+            throw new IllegalArgumentException("Character id must not be null");
+        }
+        if (data.getCharacters().stream().anyMatch(c -> request.getId().equals(c.getId()))) {
+            throw new IllegalArgumentException(
+                "Character already exists: " + request.getId());
+        }
+        int abilityVersion = request.getAbilityVersion() == null ? 0
+            : request.getAbilityVersion();
+        AsagiCharacterMetadata info;
+        try {
+            info = AsagiCharacterMetadata.getInfoById(request.getId(), abilityVersion);
+        } catch (EnumConstantNotPresentException e) {
+            throw new IllegalArgumentException("Unknown character id: " + request.getId());
+        }
+        int eidolon = request.getEidolon() == null ? 0 : request.getEidolon();
+        if (eidolon < 0 || eidolon > 6) {
+            throw new IllegalArgumentException("Eidolon must be between 0 and 6");
+        }
+        HSRCharacter character = new HSRCharacter();
+        character.setId(request.getId());
+        character.setName(request.getName() == null ? info.getDisplayName() : request.getName());
+        character.setPath(request.getPath() == null ? capitalize(info.getPath())
+            : request.getPath());
+        character.setLevel(request.getLevel() == null ? 1 : request.getLevel());
+        character.setAscension(request.getAscension() == null ? 0 : request.getAscension());
+        character.setEidolon(eidolon);
+        character.setSkills(request.getSkills() == null ? new CharacterSkills()
+            : request.getSkills());
+        character.setTraces(request.getTraces() == null ? new CharacterTraces()
+            : request.getTraces());
+        character.setAbilityVersion(abilityVersion);
+        character.setMemosprite(request.getMemosprite());
+        data.getCharacters().add(character);
+        return character;
+    }
+
+    @Override
+    public Relic addRelic(String userId, CreateRelicRequest request) {
+        ScannedData data = requireData(userId);
+        if (request.getSetId() == null) {
+            throw new IllegalArgumentException("Relic setId must not be null");
+        }
+        if (AsagiRelicSetMetadata.fromId(request.getSetId()) == null) {
+            throw new IllegalArgumentException("Unknown relic setId: " + request.getSetId());
+        }
+        if (request.getSlot() == null) {
+            throw new IllegalArgumentException("Relic slot must not be null");
+        }
+        if (request.getMainstat() == null || !MAIN_STATS.contains(request.getMainstat())) {
+            throw new IllegalArgumentException("Unknown relic mainstat: " + request.getMainstat());
+        }
+        List<SubStats> substats = request.getSubstats() == null ? List.of()
+            : request.getSubstats();
+        for (SubStats sub : substats) {
+            if (!SubStatAggregator.STAT_MAPPERS.containsKey(sub.getKey())) {
+                throw new IllegalArgumentException("Unknown relic substat: " + sub.getKey());
+            }
+            if (sub.getValue() < 0) {
+                throw new IllegalArgumentException(
+                    "Substat value must not be negative: " + sub.getKey());
+            }
+        }
+        int rarity = request.getRarity() == null ? 5 : request.getRarity();
+        if (rarity < 1 || rarity > 5) {
+            throw new IllegalArgumentException("Rarity must be between 1 and 5");
+        }
+        String uid = requireUniqueUid(
+            data.getRelics().stream().map(Relic::getUid).toList(), request.getUid());
+        String location = request.getLocation() == null ? "" : request.getLocation();
+        if (!location.isEmpty()) {
+            requireCharacter(data, location);
+            boolean conflict = data.getRelics().stream()
+                .anyMatch(r -> location.equals(r.getLocation())
+                    && request.getSlot() == r.getSlot());
+            if (conflict) {
+                throw new IllegalArgumentException(
+                    "Character " + location + " already has a " + request.getSlot()
+                        + " relic equipped");
+            }
+        }
+        Relic relic = new Relic();
+        relic.setSetId(request.getSetId());
+        relic.setName(request.getName() == null
+            ? AsagiRelicSetMetadata.fromId(request.getSetId()).getLiteralName()
+            : request.getName());
+        relic.setSlot(request.getSlot());
+        relic.setRarity(rarity);
+        relic.setLevel(request.getLevel() == null ? 0 : request.getLevel());
+        relic.setMainstat(request.getMainstat());
+        relic.setSubstats(new ArrayList<>(substats));
+        relic.setLocation(location);
+        relic.setLock(request.getLock() != null && request.getLock());
+        relic.setDiscard(false);
+        relic.setUid(uid);
+        data.getRelics().add(relic);
+        return relic;
+    }
+
+    private static final Set<String> MAIN_STATS = Set.of(
+        "HP", "ATK", "DEF", "SPD",
+        "CRIT Rate", "CRIT DMG",
+        "Effect Hit Rate", "Break Effect",
+        "Energy Regeneration Rate", "Outgoing Healing Boost",
+        "Physical DMG Boost", "Fire DMG Boost", "Ice DMG Boost",
+        "Lightning DMG Boost", "Wind DMG Boost",
+        "Quantum DMG Boost", "Imaginary DMG Boost");
+
+    private String requireUniqueUid(List<String> existing, String requested) {
+        String uid = requested == null ? UUID.randomUUID().toString() : requested;
+        if (existing.contains(uid)) {
+            throw new IllegalArgumentException("Uid already exists: " + uid);
+        }
+        return uid;
+    }
+
+    private String capitalize(String value) {
+        if (value == null || value.isEmpty()) {
+            return value;
+        }
+        return Character.toUpperCase(value.charAt(0)) + value.substring(1);
     }
 }
