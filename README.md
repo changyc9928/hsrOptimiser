@@ -9,8 +9,9 @@ Evaluates a team of HSR characters against a given relic inventory, and searches
 - Java 17 + Spring Boot 3.3.4
 - Spring Web + WebClient (calls asagi)
 - Redis (in-memory eval progress, statuses and temp tokens)
-- RabbitMQ (async evaluate-job queue)
+- Kafka (async evaluate-job trigger)
 - Maven
+- React + TypeScript frontend (`frontend/`, served on 3001 via Compose)
 
 ## Data sources
 
@@ -36,11 +37,13 @@ Recommended defaults based on real-scan sweeps: `epoch=32, cooling-rate=0.95` (~
 
 ## Run
 
-1. Start rabbitmq (redis must be up on localhost:6379):
+1. Start redis, kafka, and both services:
 
    ```bash
-   docker compose up -d
+   docker compose up -d --build
    ```
+
+Inventory listens on 8080; SA engine listens on 8081; frontend listens on 3001.
 
 2. Build & run:
 
@@ -49,7 +52,14 @@ Recommended defaults based on real-scan sweeps: `epoch=32, cooling-rate=0.95` (~
    mvn spring-boot:run
    ```
 
-Default port 8080.
+Local defaults remain inventory 8080 and engine 8081. For frontend development:
+
+```bash
+npm --prefix frontend install
+npm --prefix frontend run dev
+```
+
+Vite proxies `/api/inventory` to `localhost:8080` and `/api/engine` to `localhost:8081`.
 
 ## API
 
