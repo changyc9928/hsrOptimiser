@@ -28,12 +28,28 @@ asagi:
   url: "https://honkai.asagi-game.com"
 
 simulated-annealing:
-  initial-temperature: 250000
-  cooling-rate: 0.95
-  epoch: 32
+  initial-temperature-factor: 0.005
+  cooling-rate: 0.9
+  epoch: 12
+  steps-per-epoch: 20
+  search-round: 6
+  final-round: 6
+  refine-fraction: 0
+  min-steps: 120
+  patience: 100
+  polish-temperature-factor: 0.005
 ```
 
-Recommended defaults based on real-scan sweeps: `epoch=32, cooling-rate=0.95` (~40–60 s per eval). Raising to `epoch=64, cooling-rate=0.90` is ~3.5 min for marginally better damage.
+The search can use up to 240 round-6 evaluations. It explores at the configured starting
+temperature, then stops after at least 120 steps once there has been no meaningful
+improvement for 100 steps. Before stopping it restarts from the best build and spends one
+more patience window polishing at a low temperature. Strong starting loadouts converge
+quickly; poor or incomplete ones keep exploring. The equipped build is seeded as the
+initial best, and characters with missing relics are repaired into a complete loadout
+before the first evaluation. Duplicate relic configurations are served from an in-run
+cache. `search-round`/`refine-fraction` can split the budget between cheaper and
+full-horizon rounds, but shorter rounds can rank speed/energy builds poorly. All settings
+can be overridden with `SA_*` environment variables (see `docker-compose.yml`).
 
 ## Run
 

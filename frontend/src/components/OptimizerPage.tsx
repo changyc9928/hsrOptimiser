@@ -162,7 +162,7 @@ export function OptimizerPage({
       ) : !jobStatus ? (
         <EmptyState
           title="No optimization yet"
-          hint="The first evaluation takes a moment while the engine measures the current team, then the search refines it for roughly 15–20 minutes."
+          hint="The first evaluation takes a moment while the engine measures the current team, then the search refines it, usually within 10 minutes."
         />
       ) : null}
     </>

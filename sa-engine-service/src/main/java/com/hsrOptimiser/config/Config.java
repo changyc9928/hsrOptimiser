@@ -6,7 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.netty.http.client.HttpClient;
 
 @Configuration
 public class Config {
@@ -19,7 +21,9 @@ public class Config {
 
     @Bean
     public WebClient asagiWebClient() {
+        HttpClient httpClient = HttpClient.create().compress(true);
         return WebClient.builder()
+            .clientConnector(new ReactorClientHttpConnector(httpClient))
             .codecs(configurer ->
                 configurer.defaultCodecs()
                     .maxInMemorySize(16 * 1024 * 1024))

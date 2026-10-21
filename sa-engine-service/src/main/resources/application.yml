@@ -3,6 +3,11 @@ spring:
     name: sa-engine-service
   kafka:
     bootstrap-servers: localhost:9092
+    consumer:
+      properties:
+        # An optimization is one long-running message; do not trigger a rebalance
+        # while a 100+ call search is still in flight.
+        max.poll.interval.ms: 900000
 
 server:
   port: 8081
@@ -10,7 +15,7 @@ server:
 logging:
   level:
     root: INFO
-    com.hsrOptimiser.engine: TRACE
+    com.hsrOptimiser.engine: INFO
 
 asagi:
   url: "https://honkai.asagi-game.com"
@@ -20,11 +25,21 @@ inventory:
 
 simulated-annealing:
   # Starting temperature is a fraction of the first measured team damage, so the
-  # acceptance rate behaves the same for low- and high-investment accounts.
-  initial-temperature-factor: 0.05
+  # schedule scales with account strength.
+  initial-temperature-factor: 0.005
   cooling-rate: 0.9
-  # 20 epochs x 40 steps = 800 damage evaluations, roughly 15 minutes against the
-  # simulator. Every step is a remote request, so this is a network budget, not a
-  # quality knob: raising it just makes the job queue longer for everyone.
-  epoch: 20
-  steps-per-epoch: 40
+  # Up to 12 epochs x 20 steps = 240 evaluations. Strong starting loadouts stop
+  # early; poor or incomplete loadouts keep exploring. Round 6 is the real
+  # objective, so speed/energy builds are not mis-ranked by a short simulation.
+  epoch: 12
+  steps-per-epoch: 20
+  search-round: 6
+  final-round: 6
+  refine-fraction: 0
+  # Never stop before this many steps, and stop after this many steps without a
+  # meaningful improvement (>0.01% over the best damage).
+  min-steps: 120
+  patience: 100
+  # After the exploratory run converges, restart from the best build and spend one
+  # more patience window polishing it at a low temperature.
+  polish-temperature-factor: 0.005

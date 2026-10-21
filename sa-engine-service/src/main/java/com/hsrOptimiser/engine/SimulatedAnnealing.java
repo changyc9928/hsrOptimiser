@@ -6,14 +6,22 @@ import com.hsrOptimiser.DTO.asagi.MocResponse;
 import com.hsrOptimiser.DTO.asagi.TItem;
 import com.hsrOptimiser.DTO.asagi.TotalSubStats;
 import com.hsrOptimiser.DTO.hsrScanner.HSRCharacter;
+import com.hsrOptimiser.DTO.hsrScanner.Relic;
 import com.hsrOptimiser.DTO.hsrScanner.ScannedData;
+import com.hsrOptimiser.DTO.hsrScanner.Slot;
 import com.hsrOptimiser.client.AsagiClient;
 import com.hsrOptimiser.utils.SubStatAggregator;
 import com.hsrOptimiser.clientConfig.AsagiCharacterMetadata;
+import com.hsrOptimiser.engine.strategies.FullLoadoutMutationStrategy;
 import com.hsrOptimiser.mapper.AsagiCharactersItemMapper;
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -35,6 +43,7 @@ public class SimulatedAnnealing {
     private final AsagiCharactersItemMapper asagiCharacterMapper;
     private final MocRequestFactory mocRequestFactory;
     private final MutationStrategySelector mutationSelector;
+    private final FullLoadoutMutationStrategy fullLoadoutMutationStrategy;
 
     @Autowired(required = false)
     private RedisTemplate<String, Object> redisTemplate;
@@ -50,6 +59,24 @@ public class SimulatedAnnealing {
 
     @Value("${simulated-annealing.steps-per-epoch:100}")
     private int stepsPerEpoch;
+
+    @Value("${simulated-annealing.min-steps:120}")
+    private int minSteps;
+
+    @Value("${simulated-annealing.patience:100}")
+    private int patience;
+
+    @Value("${simulated-annealing.polish-temperature-factor:0.002}")
+    private double polishTemperatureFactor;
+
+    @Value("${simulated-annealing.search-round:3}")
+    private int searchRound;
+
+    @Value("${simulated-annealing.final-round:6}")
+    private int finalRound;
+
+    @Value("${simulated-annealing.refine-fraction:0.25}")
+    private double refineFraction;
 
     public void publishProgress(String jobId, AnnealingState state, double bestDamage) {
         if (jobId == null || redisTemplate == null) {
@@ -98,15 +125,52 @@ public class SimulatedAnnealing {
         return ThreadLocalRandom.current().nextDouble() < probability;
     }
 
-    private static void applyAdaptiveThrottling(long startTime) {
-        long duration = System.currentTimeMillis() - startTime;
-        if (duration > 1500) {
-            try {
-                Thread.sleep(150);
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-            }
+    private static int clampRound(int round) {
+        return Math.max(1, Math.min(8, round));
+    }
+
+    /**
+     * Chooses the simulation round for a step. The search runs on a short horizon to keep each
+     * remote evaluation cheap, then the last {@code refineFraction} of the budget switches back to
+     * the full horizon so the final candidates are judged on the real objective.
+     */
+    static int roundForStep(int step, int totalSteps, double refineFraction, int searchRound,
+        int finalRound) {
+        double fraction = Math.max(0, Math.min(1, refineFraction));
+        int refineStart = (int) Math.floor(totalSteps * (1 - fraction));
+        return clampRound(step > refineStart ? finalRound : searchRound);
+    }
+
+    /**
+     * Canonical signature of the equipped relics for the team. Two states with the same signature
+     * produce the same request, so the second one can reuse the first damage response.
+     */
+    static String buildRelicSignature(ScannedData data, List<String> characterIds) {
+        Map<String, List<String>> entriesByCharacter = new LinkedHashMap<>();
+        for (String characterId : characterIds) {
+            entriesByCharacter.put(characterId, new ArrayList<>());
         }
+        for (Relic relic : data.getRelics()) {
+            List<String> entries = entriesByCharacter.get(relic.getLocation());
+            if (entries == null) {
+                continue;
+            }
+            String identity = relic.getUid() != null
+                ? relic.getUid()
+                : relic.getSlot() + ":" + relic.getSetId() + ":" + relic.getMainstat();
+            entries.add(identity);
+        }
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String, List<String>> entry : entriesByCharacter.entrySet()) {
+            entry.getValue().sort(Comparator.naturalOrder());
+            builder.append(entry.getKey()).append(':')
+                .append(String.join(",", entry.getValue())).append(';');
+        }
+        return builder.toString();
+    }
+
+    private record CachedEvaluation(double damage, MocResponse response) {
+
     }
 
     private static void validateRelicSets(MocRequest mocRequest) {
@@ -152,11 +216,11 @@ public class SimulatedAnnealing {
      * (e.g. a light cone the simulator does not support) fails the job
      * immediately with a readable error instead of spinning forever.
      */
-    private void preflightCheck(MocRequest mocRequest, AsagiClient asagiClient,
+    private MocResponse preflightCheck(MocRequest mocRequest, AsagiClient asagiClient,
         List<String> characterIds, ScannedData data) {
         if (!isRelicSetValid(mocRequest)) {
             log.info("Skipping pre-flight damage check: initial relic sets incomplete");
-            return;
+            return null;
         }
         List<String> missingCones = findCharactersWithoutCones(mocRequest, characterIds);
         if (!missingCones.isEmpty()) {
@@ -166,8 +230,9 @@ public class SimulatedAnnealing {
                     + ". Equip a light cone on each team member and retry.");
         }
         try {
-            asagiClient.calculateDamage(mocRequest);
+            MocResponse response = asagiClient.calculateDamage(mocRequest);
             log.info("Pre-flight damage check passed");
+            return response;
         } catch (Exception e) {
             log.warn("Pre-flight request cones: {}", mocRequest.getCharacters().stream()
                 .map(item -> item.getKey() + "=" + item.getLightCones())
@@ -223,11 +288,28 @@ public class SimulatedAnnealing {
         List<String> allowedToScrapRelicsCharacterIds,
         List<String> disallowedToScrapRelicsCharacterIds,
         String jobId) {
-        log.info("Starting Simulated Annealing optimization. Epochs: {} x {} steps | Initial Temp: {}% of team damage",
-            epoch, stepsPerEpoch, initialTemperatureFactor * 100);
+        int totalBudget = Math.max(1, epoch) * Math.max(1, stepsPerEpoch);
+        int refineStart = (int) Math.floor(
+            totalBudget * (1 - Math.max(0, Math.min(1, refineFraction))));
+        if (clampRound(searchRound) == clampRound(finalRound)) {
+            log.info("Starting Simulated Annealing optimization. Budget: {} steps @ round {} | "
+                    + "Initial Temp: {}% of team damage",
+                totalBudget, clampRound(finalRound), initialTemperatureFactor * 100);
+        } else {
+            log.info(
+                "Starting Simulated Annealing optimization. Budget: {} steps ({} search @ round {} "
+                    + "+ {} refine @ round {}) | Initial Temp: {}% of team damage",
+                totalBudget, refineStart, clampRound(searchRound),
+                totalBudget - refineStart, clampRound(finalRound),
+                initialTemperatureFactor * 100);
+        }
 
         ScannedData workingData = SerializationUtils.clone(data);
+        repairIncompleteLoadouts(workingData, characterIds,
+            allowedToScrapRelicsCharacterIds, disallowedToScrapRelicsCharacterIds);
+
         MocRequest mocRequest = mocRequestFactory.createBaseRequest();
+        mocRequest.setRound(clampRound(searchRound));
 
         // Capture in a final variable for the lambda; workingData itself
         // will be reassigned during rollback/retry below.
@@ -237,25 +319,47 @@ public class SimulatedAnnealing {
             .toList());
 
         updateRequestWithSubstats(mocRequest, workingData, characterIds);
-        preflightCheck(mocRequest, asagiClient, characterIds, initialData);
+        long preflightStart = System.nanoTime();
+        MocResponse initialResponse = preflightCheck(mocRequest, asagiClient, characterIds,
+            initialData);
+        if (initialResponse != null) {
+            log.info("Initial team damage: {} (pre-flight {} ms)",
+                totalDamage(initialResponse),
+                (System.nanoTime() - preflightStart) / 1_000_000);
+        }
 
         log.info("Relic candidates: {} relics in the scan", workingData.getRelics().size());
 
         AnnealingState state = new AnnealingState(epoch, stepsPerEpoch, initialTemperatureFactor,
             tempCoolingRate);
-RetryPolicy retryPolicy = new RetryPolicy();
-ScannedData snapshot = SerializationUtils.clone(workingData);
-MocResponse bestResponse = null;
-ScannedData bestSnapshot = SerializationUtils.clone(workingData);
-double bestDamage = Double.NEGATIVE_INFINITY;
+        RetryPolicy retryPolicy = new RetryPolicy();
+        ScannedData snapshot = SerializationUtils.clone(workingData);
+        ScannedData bestSnapshot = SerializationUtils.clone(workingData);
+        // Seed the peak with the equipped build so a failed search can never return something
+        // worse than what the user already owns.
+        MocResponse bestResponse = initialResponse;
+        double bestDamage = initialResponse == null
+            ? Double.NEGATIVE_INFINITY
+            : totalDamage(initialResponse);
+        int bestRound = initialResponse == null ? -1 : clampRound(searchRound);
+
+        Map<String, CachedEvaluation> evaluationCache = new HashMap<>();
+        int remoteEvaluations = 0;
+        int cacheHits = 0;
+        long remoteNanos = 0;
+        int lastImprovementStep = 0;
+        boolean polishing = false;
+        String stopReason = "budget exhausted";
 
         while (state.hasRemainingEpochs()) {
             state.incrementSteps();
 
+            int round = roundForStep(state.getTotalSteps(), totalBudget, refineFraction,
+                searchRound, finalRound);
+            mocRequest.setRound(round);
+
             updateRequestWithSubstats(mocRequest, workingData, characterIds);
             applyRelicsToRequest(mocRequest, workingData);
-
-            long startTime = System.currentTimeMillis();
 
             if (!isRelicSetValid(mocRequest)) {
                 log.debug("Skipping MoC evaluation: incomplete relic set configuration after mutation");
@@ -273,10 +377,22 @@ double bestDamage = Double.NEGATIVE_INFINITY;
             try {
                 validateRelicSets(mocRequest);
 
-                MocResponse mocResponse = asagiClient.calculateDamage(mocRequest);
-                double totalDamage = mocResponse.getT().stream()
-                    .mapToDouble(TItem::getTotal)
-                    .sum();
+                String cacheKey = round + "|" + buildRelicSignature(workingData, characterIds);
+                CachedEvaluation cached = evaluationCache.get(cacheKey);
+                MocResponse mocResponse;
+                double totalDamage;
+                if (cached != null) {
+                    mocResponse = cached.response();
+                    totalDamage = cached.damage();
+                    cacheHits++;
+                } else {
+                    long remoteStart = System.nanoTime();
+                    mocResponse = asagiClient.calculateDamage(mocRequest);
+                    remoteNanos += System.nanoTime() - remoteStart;
+                    totalDamage = totalDamage(mocResponse);
+                    evaluationCache.put(cacheKey, new CachedEvaluation(totalDamage, mocResponse));
+                    remoteEvaluations++;
+                }
 
                 state.calibrate(initialTemperatureFactor, totalDamage);
 
@@ -294,13 +410,18 @@ double bestDamage = Double.NEGATIVE_INFINITY;
                 // Annealing deliberately wanders downhill, so the last accepted state is
                 // usually not the best one seen. Keep the peak separately and return it.
                 if (totalDamage > bestDamage) {
+                    boolean meaningful = totalDamage - bestDamage
+                        > Math.max(1.0, bestDamage * 0.0001);
                     bestDamage = totalDamage;
                     bestSnapshot = SerializationUtils.clone(workingData);
                     bestResponse = mocResponse;
+                    bestRound = round;
+                    if (meaningful) {
+                        lastImprovementStep = state.getTotalSteps();
+                    }
                 }
 
                 retryPolicy.recordSuccess();
-                applyAdaptiveThrottling(startTime);
 
             } catch (Exception e) {
                 retryPolicy.recordFailure();
@@ -319,6 +440,26 @@ double bestDamage = Double.NEGATIVE_INFINITY;
 
             publishProgress(jobId, state, bestDamage);
 
+            if (state.getTotalSteps() >= minSteps
+                && state.getTotalSteps() - lastImprovementStep >= patience) {
+                if (!polishing && bestResponse != null) {
+                    // Keep the exploratory phase, then spend one final window refining the best
+                    // build at a low temperature instead of returning immediately.
+                    workingData = SerializationUtils.clone(bestSnapshot);
+                    snapshot = SerializationUtils.clone(bestSnapshot);
+                    state.accept(bestDamage);
+                    state.setTemperature(Math.max(1.0, bestDamage * polishTemperatureFactor));
+                    lastImprovementStep = state.getTotalSteps();
+                    polishing = true;
+                    log.info(
+                        "No improvement for {} steps; polishing best build at temperature {}",
+                        patience, state.getTemperature());
+                } else {
+                    stopReason = "no meaningful improvement for " + patience + " steps";
+                    break;
+                }
+            }
+
             performMutation(
                 workingData,
                 characterIds,
@@ -327,11 +468,12 @@ double bestDamage = Double.NEGATIVE_INFINITY;
                 disallowedToScrapRelicsCharacterIds);
         }
 
-        log.info("================================================================");
-        log.info(String.format(
-            "Optimization Completed! Best Damage: %.2f (last accepted: %.2f) after %d total mutations.",
-            bestDamage, state.getCurrentDamage(), state.getTotalSteps()));
-        log.info("================================================================");
+        long averageRemoteMs = remoteEvaluations == 0
+            ? 0
+            : remoteNanos / 1_000_000 / remoteEvaluations;
+        log.info(
+            "Search completed: {} steps ({}), {} remote evaluations (avg {} ms), {} cache hits",
+            state.getTotalSteps(), stopReason, remoteEvaluations, averageRemoteMs, cacheHits);
 
         if (bestResponse == null) {
             throw new IllegalStateException(
@@ -339,7 +481,98 @@ double bestDamage = Double.NEGATIVE_INFINITY;
                     + "damage simulator.");
         }
 
-        return new SimulationResult(bestSnapshot, bestResponse, bestDamage);
+        MocResponse finalResponse = bestResponse;
+        double finalDamage = bestDamage;
+        int finalRoundNumber = clampRound(finalRound);
+        final ScannedData finalSnapshot = bestSnapshot;
+        if (bestRound == finalRoundNumber) {
+            log.info("Best build already validated at round {}; skipping duplicate final request",
+                finalRoundNumber);
+        } else {
+            try {
+                MocRequest finalRequest = mocRequestFactory.createBaseRequest();
+                finalRequest.setRound(finalRoundNumber);
+                finalRequest.setCharacters(characterIds.stream()
+                    .map(characterId -> asagiCharacterMapper.map(finalSnapshot, characterId))
+                    .toList());
+                updateRequestWithSubstats(finalRequest, finalSnapshot, characterIds);
+                applyRelicsToRequest(finalRequest, finalSnapshot);
+
+                long finalStart = System.nanoTime();
+                finalResponse = asagiClient.calculateDamage(finalRequest);
+                finalDamage = totalDamage(finalResponse);
+                log.info("Final round-{} validation: {} damage (search best: {}) in {} ms",
+                    finalRoundNumber, finalDamage, bestDamage,
+                    (System.nanoTime() - finalStart) / 1_000_000);
+            } catch (Exception e) {
+                log.warn("Final validation failed; returning best search result: {}",
+                    truncate(e.getMessage(), 300));
+            }
+        }
+
+        publishProgress(jobId, state, finalDamage);
+
+        log.info("================================================================");
+        log.info(String.format(
+            "Optimization Completed! Best Damage: %.2f (last accepted: %.2f) after %d total mutations.",
+            finalDamage, state.getCurrentDamage(), state.getTotalSteps()));
+        log.info("================================================================");
+
+        return new SimulationResult(bestSnapshot, finalResponse, finalDamage);
+    }
+
+    private static double totalDamage(MocResponse response) {
+        return response.getT().stream()
+            .mapToDouble(TItem::getTotal)
+            .sum();
+    }
+
+    /**
+     * Characters with no relics (or an incomplete set) cannot be evaluated because Asagi needs a
+     * complete cavern + planar configuration. Fill every empty slot before the search starts so
+     * the optimizer can work from a valid state instead of rolling back every mutation forever.
+     */
+    private void repairIncompleteLoadouts(ScannedData data, List<String> characterIds,
+        List<String> allowedToScrapRelicsCharacterIds,
+        List<String> disallowedToScrapRelicsCharacterIds) {
+        Set<Slot> requiredSlots = EnumSet.allOf(Slot.class);
+        Set<String> allowed = new HashSet<>(allowedToScrapRelicsCharacterIds);
+        Set<String> disallowed = new HashSet<>(disallowedToScrapRelicsCharacterIds);
+        Random random = ThreadLocalRandom.current();
+
+        for (String characterId : characterIds) {
+            Set<Slot> equippedSlots = EnumSet.noneOf(Slot.class);
+            for (Relic relic : data.getRelics()) {
+                if (characterId.equals(relic.getLocation())) {
+                    equippedSlots.add(relic.getSlot());
+                }
+            }
+            if (equippedSlots.containsAll(requiredSlots)) {
+                continue;
+            }
+
+            HSRCharacter character = data.getCharacters().stream()
+                .filter(c -> characterId.equals(c.getId()))
+                .findFirst()
+                .orElseThrow();
+            MutationContext context = new MutationContext(
+                characterId, character.getAbilityVersion(), allowed, disallowed, random);
+            fullLoadoutMutationStrategy.mutate(data, context);
+
+            Set<Slot> slotsAfter = EnumSet.noneOf(Slot.class);
+            for (Relic relic : data.getRelics()) {
+                if (characterId.equals(relic.getLocation())) {
+                    slotsAfter.add(relic.getSlot());
+                }
+            }
+            log.info("Repaired incomplete loadout for {}: {} slots equipped", characterId,
+                slotsAfter.size());
+            if (!slotsAfter.containsAll(requiredSlots)) {
+                throw new IllegalStateException(
+                    "Cannot build a complete relic loadout for character " + characterId
+                        + ": not enough available relics of the required slots/sets.");
+            }
+        }
     }
 
     private void handleAcceptedState(
