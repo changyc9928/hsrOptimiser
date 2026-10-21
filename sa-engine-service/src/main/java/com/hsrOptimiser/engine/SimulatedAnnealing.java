@@ -239,18 +239,10 @@ public class SimulatedAnnealing {
         updateRequestWithSubstats(mocRequest, workingData, characterIds);
         preflightCheck(mocRequest, asagiClient, characterIds, initialData);
 
-        int optimizableRelics = (int) workingData.getRelics().stream()
-            .filter(RelicAvailabilityHelper::hasKnownStats)
-            .count();
-        log.info("Relic pool: {} of {} relics have readable substats and may be equipped",
-            optimizableRelics, workingData.getRelics().size());
-        if (optimizableRelics == 0) {
-            throw new IllegalStateException(
-                "No relics with readable stats found. Re-import a full HSR scanner export "
-                    + "(unenhanced relics with unknown substats cannot be scored).");
-        }
+        log.info("Relic candidates: {} relics in the scan", workingData.getRelics().size());
 
-AnnealingState state = new AnnealingState(epoch, stepsPerEpoch, initialTemperatureFactor, tempCoolingRate);
+        AnnealingState state = new AnnealingState(epoch, stepsPerEpoch, initialTemperatureFactor,
+            tempCoolingRate);
 RetryPolicy retryPolicy = new RetryPolicy();
 ScannedData snapshot = SerializationUtils.clone(workingData);
 MocResponse bestResponse = null;

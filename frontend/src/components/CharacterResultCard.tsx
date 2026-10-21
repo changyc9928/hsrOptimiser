@@ -2,17 +2,22 @@ import {
   RELIC_SLOT_LABEL,
   characterPortrait,
   displayStat,
+  elementIcon,
   formatDamage,
   formatSubstat,
+  lightConePortrait,
+  pathIcon,
   relicSetIcon,
 } from '../api/gameData.ts';
-import type { CharacterDamage, Relic, RelicSlot } from '../api/types.ts';
-import { GameImage, StatChip } from './ui.tsx';
+import type { LightConeMeta } from '../api/gameData.ts';
+import type { CharacterDamage, HSRCharacter, LightCone, Relic, RelicSlot } from '../api/types.ts';
+import { GameImage } from './ui.tsx';
 
 const SLOT_ORDER: RelicSlot[] = ['Head', 'Hands', 'Body', 'Feet', 'LinkRope', 'PlanarSphere'];
 
 export interface CharacterMeta {
   rarity: number;
+  path: string;
   element: string;
   portrait: string;
   icon: string;
@@ -84,58 +89,167 @@ export function CharacterResultCard({
   total,
   rank,
   characterId,
+  character,
   meta,
   relicSets,
+  cones,
+  coneMeta,
 }: {
   row: CharacterDamage;
   total: number;
   rank: number;
   characterId?: string;
+  character?: HSRCharacter;
   meta?: CharacterMeta;
   relicSets: Record<string, RelicSetMeta>;
+  cones: LightCone[];
+  coneMeta: Record<string, LightConeMeta>;
 }) {
   const relics = row.relics ?? [];
   const slots = bySlot(relics);
   const share = total > 0 ? (row.totalDamage / total) * 100 : 0;
+  const equippedCone = characterId ? cones.find((cone) => cone.location === characterId) : undefined;
+  const coneInfo = equippedCone ? coneMeta[equippedCone.id] : undefined;
+  const path = meta?.path ?? character?.path;
+  const displayName = character?.name ?? row.name;
+  const setBreakdown = [...relics.reduce((counts, relic) => {
+    counts.set(relic.set_id, (counts.get(relic.set_id) ?? 0) + 1);
+    return counts;
+  }, new Map<string, number>())].sort((a, b) => b[1] - a[1]);
+  const uniqueSets = setBreakdown.length;
 
   return (
     <article className={`result-card ${meta ? `rarity-${meta.rarity}` : ''}`}>
-      <header className="result-head">
-        <GameImage
-          src={characterPortrait(characterId ?? '', meta)}
-          alt={row.name}
-          className="result-portrait"
-          fallback={row.name.slice(0, 2).toUpperCase()}
-        />
-        <div className="result-id">
-          <strong>{row.name}</strong>
-          {meta?.element ? <span className="result-element">{meta.element}</span> : null}
+      <div className="result-split">
+        <section className="result-char">
+          <div className="result-char-card">
+            <header className="result-char-head">
+              <GameImage
+                src={characterPortrait(characterId ?? '', meta)}
+                alt={displayName}
+                className="result-portrait"
+                fallback={displayName.slice(0, 2).toUpperCase()}
+              />
+              <div className="result-id">
+                <span className="result-rank">
+                  {meta?.element ? (
+                    <GameImage
+                      src={elementIcon(meta.element)}
+                      alt=""
+                      className="result-meta-icon"
+                      fallback="EL"
+                    />
+                  ) : null}
+                  #{rank} · {meta?.element ?? 'Unknown element'}
+                </span>
+                <strong className="result-name">{displayName}</strong>
+                <span className="result-sub">
+                  {path ?? 'Unknown path'}
+                  {character ? ` · Lv ${character.level} · E${character.eidolon}` : ''}
+                </span>
+              </div>
+            </header>
+
+            <div className="result-damage">
+              <strong>{formatDamage(row.totalDamage)}</strong>
+              <span>{share.toFixed(1)}% of team damage</span>
+            </div>
+
+            <div className="result-bar" role="img" aria-label={`${share.toFixed(1)} percent of team damage`}>
+              <div className="result-bar-fill" style={{ width: `${Math.max(2, share)}%` }} />
+            </div>
+
+            <div className="result-sets">
+              {setBreakdown.map(([setId, count]) => (
+                <div className="result-set" key={setId}>
+                  <GameImage
+                    src={relicSetIcon(setId, relicSets[setId])}
+                    alt=""
+                    className="result-set-icon"
+                    fallback="SE"
+                  />
+                  <span className="result-set-name">{relicSets[setId]?.name ?? setId}</span>
+                  <strong className="result-set-count">{count}pc</strong>
+                </div>
+              ))}
+            </div>
+
+            <div className="result-stats">
+              <div className="result-stat">
+                <span className="result-stat-label">Level</span>
+                <strong>{character?.level ?? '—'}</strong>
+              </div>
+              <div className="result-stat">
+                <span className="result-stat-label">Eidolon</span>
+                <strong>{character ? `E${character.eidolon}` : '—'}</strong>
+              </div>
+              <div className="result-stat">
+                <span className="result-stat-label">Path</span>
+                <strong>{path ?? '—'}</strong>
+              </div>
+              <div className="result-stat">
+                <span className="result-stat-label">Element</span>
+                <strong>{meta?.element ?? '—'}</strong>
+              </div>
+              <div className="result-stat">
+                <span className="result-stat-label">Relics</span>
+                <strong>{relics.length}</strong>
+              </div>
+              <div className="result-stat">
+                <span className="result-stat-label">Sets</span>
+                <strong>{uniqueSets}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className={`result-cone-card ${equippedCone ? '' : 'empty'}`}>
+            {equippedCone ? (
+              <GameImage
+                src={lightConePortrait(equippedCone.id, coneInfo)}
+                alt={coneInfo?.name ?? equippedCone.name}
+                className="result-cone-art"
+                fallback="LC"
+              />
+            ) : (
+              <span className="img-fallback result-cone-art">LC</span>
+            )}
+            <div className="result-cone-copy">
+              <span className="result-label">Equipped light cone</span>
+              <strong className="result-cone-name">
+                {equippedCone ? coneInfo?.name ?? equippedCone.name : 'None equipped'}
+              </strong>
+              {equippedCone ? (
+                <>
+                  <span className="muted">
+                    Lv {equippedCone.level} · S{equippedCone.superimposition}
+                  </span>
+                  {coneInfo?.path ? (
+                    <span className="result-cone-path">
+                      <GameImage
+                        src={pathIcon(coneInfo.path)}
+                        alt=""
+                        className="result-meta-icon"
+                        fallback="PT"
+                      />
+                      {coneInfo.path}
+                    </span>
+                  ) : null}
+                </>
+              ) : (
+                <span className="muted">No light cone assigned</span>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <div className="result-relics">
+          {SLOT_ORDER.map((slot) => {
+            const relic = slots.get(slot);
+            if (!relic) return <EmptySlot key={slot} slot={slot} />;
+            return <RelicTile key={slot} relic={relic} set={relicSets[relic.set_id]} />;
+          })}
         </div>
-        <div className="result-damage">
-          <span className="result-rank">#{rank}</span>
-          <strong>{formatDamage(row.totalDamage)}</strong>
-          <span className="result-share">{share.toFixed(1)}% of team</span>
-        </div>
-      </header>
-
-      <div className="result-bar" role="img" aria-label={`${share.toFixed(1)} percent of team damage`}>
-        <div className="result-bar-fill" style={{ width: `${Math.max(2, share)}%` }} />
       </div>
-
-      <div className="result-relics">
-        {SLOT_ORDER.map((slot) => {
-          const relic = slots.get(slot);
-          if (!relic) return <EmptySlot key={slot} slot={slot} />;
-          return <RelicTile key={slot} relic={relic} set={relicSets[relic.set_id]} />;
-        })}
-      </div>
-
-      {relics.length > 0 ? (
-        <footer className="result-foot">
-          <StatChip label="Relics" value={String(relics.length)} />
-          <StatChip label="Sets" value={String(new Set(relics.map((r) => r.set_id)).size)} />
-        </footer>
-      ) : null}
     </article>
   );
 }

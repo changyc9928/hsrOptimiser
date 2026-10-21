@@ -23,12 +23,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Scanner exports contain far more unenhanced relics than enhanced ones, and their substats are
- * only partially readable. The optimizer must never equip one, otherwise it hands back builds that
- * cannot exist in game.
+ * Relic level must not be used as an eligibility filter. A level-0 relic has the same main stat
+ * and its already-rolled substats; it is simply weaker than an enhanced copy. The optimizer is
+ * expected to compare them through damage and pick the better one, not to refuse the candidate.
  */
 @ExtendWith(MockitoExtension.class)
-class UnknownSubstatRelicTest {
+class RelicLevelEligibilityTest {
 
     private static final String CHARACTER_ID = "1502";
     private static final String OTHER_CHARACTER = "8010";
@@ -60,32 +60,24 @@ class UnknownSubstatRelicTest {
     }
 
     @Test
-    @DisplayName("hasKnownStats only accepts enhanced relics")
-    void hasKnownStats_rejectsUnenhancedRelics() {
-        assertThat(RelicAvailabilityHelper.hasKnownStats(relic(Slot.Head, "A", 0, ""))).isFalse();
-        assertThat(RelicAvailabilityHelper.hasKnownStats(relic(Slot.Head, "A", 1, ""))).isTrue();
-        assertThat(RelicAvailabilityHelper.hasKnownStats(relic(Slot.Head, "A", 15, ""))).isTrue();
-    }
-
-    @Test
-    @DisplayName("isOptimizable combines availability with readable stats")
-    void isOptimizable_requiresBoth() {
-        assertThat(RelicAvailabilityHelper.isOptimizable(relic(Slot.Head, "A", 0, ""), Set.of(),
-            Set.of())).isFalse();
-        assertThat(RelicAvailabilityHelper.isOptimizable(relic(Slot.Head, "A", 15, ""), Set.of(),
+    @DisplayName("availability check ignores relic level")
+    void isAvailable_doesNotFilterByLevel() {
+        assertThat(RelicAvailabilityHelper.isAvailable(relic(Slot.Head, "A", 0, ""), Set.of(),
             Set.of())).isTrue();
-        assertThat(RelicAvailabilityHelper.isOptimizable(relic(Slot.Head, "A", 15, OTHER_CHARACTER),
+        assertThat(RelicAvailabilityHelper.isAvailable(relic(Slot.Head, "A", 15, ""), Set.of(),
+            Set.of())).isTrue();
+        assertThat(RelicAvailabilityHelper.isAvailable(relic(Slot.Head, "A", 0, OTHER_CHARACTER),
             Set.of(CHARACTER_ID), Set.of())).isFalse();
     }
 
     @Test
-    @DisplayName("Cavern set mutation skips unenhanced candidates")
-    void cavernSetMutation_skipsUnenhancedRelics() {
+    @DisplayName("Cavern set mutation can equip level-0 candidates")
+    void cavernSetMutation_acceptsUnenhancedRelics() {
         ScannedData scannedData = data(
-            relic(Slot.Head, "A", 15, ""), relic(Slot.Head, "B", 0, ""),
-            relic(Slot.Hands, "A", 15, ""), relic(Slot.Hands, "B", 0, ""),
-            relic(Slot.Body, "A", 15, ""), relic(Slot.Body, "B", 0, ""),
-            relic(Slot.Feet, "A", 15, ""), relic(Slot.Feet, "B", 0, ""));
+            relic(Slot.Head, "A", 0, ""), relic(Slot.Head, "B", 15, ""),
+            relic(Slot.Hands, "A", 0, ""), relic(Slot.Hands, "B", 15, ""),
+            relic(Slot.Body, "A", 0, ""), relic(Slot.Body, "B", 15, ""),
+            relic(Slot.Feet, "A", 0, ""), relic(Slot.Feet, "B", 15, ""));
 
         new CavernSetMutationStrategy().mutate(scannedData,
             new MutationContext(CHARACTER_ID, 0, Set.of(), Set.of(), random));
@@ -93,16 +85,16 @@ class UnknownSubstatRelicTest {
         assertThat(scannedData.getRelics())
             .filteredOn(r -> CHARACTER_ID.equals(r.getLocation()))
             .hasSize(4)
-            .allMatch(r -> r.getLevel() > 0);
+            .allMatch(r -> r.getSetId().equals("A"))
+            .allMatch(r -> r.getLevel() == 0);
     }
 
     @Test
-    @DisplayName("Existing pair mutation skips unenhanced candidates")
-    void existingPairMutation_skipsUnenhancedRelics() {
+    @DisplayName("Existing pair mutation can equip level-0 candidates")
+    void existingPairMutation_acceptsUnenhancedRelics() {
         ScannedData scannedData = data(
             relic(Slot.Head, "OLD", 15, CHARACTER_ID), relic(Slot.Hands, "OLD", 15, CHARACTER_ID),
-            relic(Slot.Head, "NEW", 15, ""), relic(Slot.Head, "NEW", 0, ""),
-            relic(Slot.Hands, "NEW", 15, ""), relic(Slot.Hands, "NEW", 0, ""));
+            relic(Slot.Head, "NEW", 0, ""), relic(Slot.Hands, "NEW", 0, ""));
 
         new ExistingPairMutationStrategy().mutate(scannedData,
             new MutationContext(CHARACTER_ID, 0, Set.of(), Set.of(), random));
@@ -111,15 +103,17 @@ class UnknownSubstatRelicTest {
             .filteredOn(r -> CHARACTER_ID.equals(r.getLocation()))
             .hasSize(2)
             .allMatch(r -> r.getSetId().equals("NEW"))
-            .allMatch(r -> r.getLevel() > 0);
+            .allMatch(r -> r.getLevel() == 0);
     }
 
     @Test
-    @DisplayName("Planar pair mutation skips unenhanced candidates")
-    void planarPairMutation_skipsUnenhancedRelics() {
+    @DisplayName("Planar pair mutation can equip level-0 candidates")
+    void planarPairMutation_acceptsUnenhancedRelics() {
+        // Only set 300 forms a complete pair, so it is the only legal choice. If level were
+        // used as a filter, the mutation would find nothing and leave the character unchanged.
         ScannedData scannedData = data(
             relic(Slot.PlanarSphere, "300", 0, ""), relic(Slot.LinkRope, "300", 0, ""),
-            relic(Slot.PlanarSphere, "301", 15, ""), relic(Slot.LinkRope, "301", 15, ""));
+            relic(Slot.PlanarSphere, "301", 15, ""));
 
         new PlanarPairMutationStrategy().mutate(scannedData,
             new MutationContext(CHARACTER_ID, 0, Set.of(), Set.of(), random));
@@ -127,16 +121,15 @@ class UnknownSubstatRelicTest {
         assertThat(scannedData.getRelics())
             .filteredOn(r -> CHARACTER_ID.equals(r.getLocation()))
             .hasSize(2)
-            .allMatch(r -> r.getLevel() > 0);
+            .allMatch(r -> r.getLevel() == 0);
     }
 
     @Test
-    @DisplayName("Single relic mutation never swaps in an unenhanced relic")
-    void singleRelicMutation_skipsUnenhancedRelics() {
+    @DisplayName("Single relic mutation can swap in a level-0 relic")
+    void singleRelicMutation_acceptsUnenhancedRelic() {
         ScannedData scannedData = data(
             relic(Slot.Head, "A", 15, CHARACTER_ID),
-            relic(Slot.Head, "A", 0, ""),
-            relic(Slot.Head, "B", 15, ""));
+            relic(Slot.Head, "A", 0, ""));
 
         new SingleRelicMutationStrategy().mutate(scannedData,
             new MutationContext(CHARACTER_ID, 0, Set.of(), Set.of(), random));
@@ -144,6 +137,6 @@ class UnknownSubstatRelicTest {
         assertThat(scannedData.getRelics())
             .filteredOn(r -> CHARACTER_ID.equals(r.getLocation()))
             .hasSize(1)
-            .allMatch(r -> r.getLevel() > 0);
+            .allMatch(r -> r.getLevel() == 0);
     }
 }

@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { RefObject } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { HSRCharacter, LightCone, Loadout, Relic } from '../api/types.ts';
 import {
   type BackendConfig,
@@ -13,7 +12,10 @@ import {
   updateRelic,
 } from '../api/client.ts';
 import {
+  CHARACTER_PATHS,
+  RELIC_MAIN_STATS,
   RELIC_SLOT_LABEL,
+  RELIC_SUBSTAT_KEYS,
   characterPortrait,
   displayStat,
   elementIcon,
@@ -21,7 +23,7 @@ import {
   pathIcon,
   relicSetIcon,
 } from '../api/gameData.ts';
-import { GameImage, StatChip } from './ui.tsx';
+import { ConfirmDialog, GameImage, StatChip } from './ui.tsx';
 
 export interface PreviewMeta {
   rarity: number;
@@ -35,23 +37,6 @@ export interface PreviewSetMeta {
   icon: string;
   desc: string[];
 }
-
-const MAIN_STATS = [
-  'HP', 'ATK', 'DEF', 'SPD',
-  'CRIT Rate', 'CRIT DMG',
-  'Effect Hit Rate', 'Break Effect',
-  'Energy Regeneration Rate', 'Outgoing Healing Boost',
-  'Physical DMG Boost', 'Fire DMG Boost', 'Ice DMG Boost',
-  'Lightning DMG Boost', 'Wind DMG Boost',
-  'Quantum DMG Boost', 'Imaginary DMG Boost',
-];
-
-const SUBSTAT_KEYS = [
-  'ATK', 'HP', 'DEF', 'SPD',
-  'ATK_', 'HP_', 'DEF_',
-  'CRIT Rate_', 'CRIT DMG_',
-  'Effect RES_', 'Effect Hit Rate_', 'Break Effect_',
-];
 
 function stars(rarity: number): string {
   return '★'.repeat(Math.max(0, Math.min(5, rarity)));
@@ -83,13 +68,12 @@ function num(value: string, fallback: number): number {
 }
 
 function useGridColumns(minCardWidth = 190, maxCols = 7): {
-  ref: RefObject<HTMLDivElement>;
+  ref: (node: HTMLDivElement | null) => void;
   cols: number;
 } {
-  const ref = useRef<HTMLDivElement>(null);
+  const [el, setEl] = useState<HTMLDivElement | null>(null);
   const [cols, setCols] = useState(maxCols);
   useEffect(() => {
-    const el = ref.current;
     if (!el) return;
     const update = () => {
       const w = el.clientWidth;
@@ -99,8 +83,8 @@ function useGridColumns(minCardWidth = 190, maxCols = 7): {
     const observer = new ResizeObserver(update);
     observer.observe(el);
     return () => observer.disconnect();
-  }, [minCardWidth, maxCols]);
-  return { ref, cols };
+  }, [el, minCardWidth, maxCols]);
+  return { ref: setEl, cols };
 }
 
 export function CharacterPreview({
@@ -116,6 +100,7 @@ export function CharacterPreview({
   onToggleTeam,
   onOptimize,
   onChanged,
+  onDelete,
 }: {
   config: BackendConfig;
   character: HSRCharacter;
@@ -129,11 +114,14 @@ export function CharacterPreview({
   onToggleTeam: () => void;
   onOptimize: () => void;
   onChanged: () => Promise<void>;
+  onDelete: () => void;
 }) {
   const [loadout, setLoadout] = useState<Loadout | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
+  const [name, setName] = useState(character.name);
+  const [charPath, setCharPath] = useState(character.path);
   const [level, setLevel] = useState(String(character.level));
   const [ascension, setAscension] = useState(String(character.ascension));
   const [eidolon, setEidolon] = useState(String(character.eidolon));
@@ -143,6 +131,7 @@ export function CharacterPreview({
     ult: String(character.skills.ult),
     talent: String(character.skills.talent),
   });
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [conePickerOpen, setConePickerOpen] = useState(false);
   const [coneEditOpen, setConeEditOpen] = useState(false);
   const [coneFilter, setConeFilter] = useState({ q: '', path: 'all', holder: 'all', rarity: 'all' });
@@ -195,6 +184,8 @@ export function CharacterPreview({
   }, [cones, coneMeta, coneFilter, coneSort]);
 
   useEffect(() => {
+    setName(character.name);
+    setCharPath(character.path);
     setLevel(String(character.level));
     setAscension(String(character.ascension));
     setEidolon(String(character.eidolon));
@@ -287,6 +278,8 @@ export function CharacterPreview({
   function saveDetails() {
     void run('Save failed', () =>
       updateCharacter(config, character.id, {
+        name: name.trim() || character.name,
+        path: charPath,
         level: num(level, character.level),
         ascension: num(ascension, character.ascension),
         eidolon: num(eidolon, character.eidolon),
@@ -336,7 +329,7 @@ export function CharacterPreview({
       mainstat: relic.mainstat,
       level: String(relic.level),
       lock: relic.lock,
-      subs: relic.substats.map((s) => ({ key: s.key, value: String(s.value) })),
+      subs: relic.substats.map((s) => ({ key: s.key, value: s.value.toFixed(2) })),
     });
   }
 
@@ -413,6 +406,9 @@ export function CharacterPreview({
             </button>
             <button type="button" className="btn primary" disabled={busy} onClick={onOptimize}>
               Optimize
+            </button>
+            <button type="button" className="btn danger" disabled={busy} onClick={() => setConfirmDelete(true)}>
+              Delete character
             </button>
           </div>
         </div>
@@ -647,6 +643,20 @@ export function CharacterPreview({
           <div className="char-details">
                       <h3>Details</h3>
                       <div className="form-grid">
+                        <label className="field wide">
+                          Name
+                          <input value={name} onChange={(e) => setName(e.target.value)} />
+                        </label>
+                        <label className="field">
+                          Path
+                          <select value={charPath} onChange={(e) => setCharPath(e.target.value)}>
+                            {CHARACTER_PATHS.map((value) => (
+                              <option key={value} value={value}>
+                                {value}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
                         <label className="field">
                           Level
                           <input value={level} inputMode="numeric" onChange={(e) => setLevel(e.target.value)} />
@@ -877,7 +887,7 @@ export function CharacterPreview({
                       value={relicForm.mainstat}
                       onChange={(e) => setRelicForm((p) => ({ ...p, mainstat: e.target.value }))}
                     >
-                      {MAIN_STATS.map((m) => (
+                      {RELIC_MAIN_STATS.map((m) => (
                         <option key={m} value={m}>
                           {m}
                         </option>
@@ -916,7 +926,7 @@ export function CharacterPreview({
                             }))
                           }
                         >
-                          {SUBSTAT_KEYS.map((k) => (
+                          {RELIC_SUBSTAT_KEYS.map((k) => (
                             <option key={k} value={k}>
                               {displayStat(k)}
                             </option>
@@ -972,6 +982,17 @@ export function CharacterPreview({
           </div>
         )}
       </div>
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Delete character?"
+        message={`${character.name} will be removed from the roster, their gear will be unequipped, and they will leave the saved team.`}
+        busy={busy}
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={() => {
+          setConfirmDelete(false);
+          onDelete();
+        }}
+      />
     </div>
   );
 }

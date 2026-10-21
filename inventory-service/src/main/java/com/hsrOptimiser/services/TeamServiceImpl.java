@@ -63,6 +63,25 @@ public class TeamServiceImpl implements TeamService {
         return resolved;
     }
 
+    @Override
+    public List<HSRCharacter> removeMember(String userId, String characterId) {
+        List<String> ids = getTeamIds(userId);
+        if (ids == null || !ids.contains(characterId)) {
+            return getTeam(userId);
+        }
+        List<String> next = ids.stream().filter(id -> !id.equals(characterId)).toList();
+        memory.saveTeam(userId, new ArrayList<>(next));
+        if (redisTemplate != null) {
+            redisTemplate.opsForValue().set(String.format(TEAM_KEY, userId),
+                new ArrayList<>(next));
+        }
+        ScannedData data = memory.getMemory(userId);
+        if (data == null || next.isEmpty()) {
+            return List.of();
+        }
+        return resolve(data, next);
+    }
+
     private List<String> getTeamIds(String userId) {
         if (redisTemplate != null) {
             Object value = redisTemplate.opsForValue().get(String.format(TEAM_KEY, userId));

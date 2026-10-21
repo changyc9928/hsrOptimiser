@@ -24,14 +24,24 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class LoadoutServiceImpl implements LoadoutService {
 
     private final Memory memory;
+    private final TeamService teamService;
+
+    public LoadoutServiceImpl(Memory memory) {
+        this(memory, null);
+    }
+
+    @Autowired
+    public LoadoutServiceImpl(Memory memory, TeamService teamService) {
+        this.memory = memory;
+        this.teamService = teamService;
+    }
 
     @Override
     public LoadoutDTO getLoadout(String userId, String characterId) {
@@ -413,6 +423,48 @@ public class LoadoutServiceImpl implements LoadoutService {
             relic.setDiscard(request.getDiscard());
         }
         return relic;
+    }
+
+    @Override
+    public void deleteCharacter(String userId, String characterId) {
+        ScannedData data = requireData(userId);
+        requireCharacter(data, characterId);
+        for (Relic relic : data.getRelics()) {
+            if (characterId.equals(relic.getLocation())) {
+                relic.setLocation("");
+            }
+        }
+        for (LightCone cone : data.getLightCones()) {
+            if (characterId.equals(cone.getLocation())) {
+                cone.setLocation("");
+            }
+        }
+        data.getCharacters().removeIf(c -> characterId.equals(c.getId()));
+        if (teamService != null) {
+            teamService.removeMember(userId, characterId);
+        }
+    }
+
+    @Override
+    public void deleteLightCone(String userId, String lightConeUid) {
+        ScannedData data = requireData(userId);
+        LightCone cone = data.getLightCones().stream()
+            .filter(lc -> lightConeUid.equals(lc.getUid()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Light cone not found: " + lightConeUid));
+        data.getLightCones().remove(cone);
+    }
+
+    @Override
+    public void deleteRelic(String userId, String relicUid) {
+        ScannedData data = requireData(userId);
+        Relic relic = data.getRelics().stream()
+            .filter(r -> relicUid.equals(r.getUid()))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Relic not found: " + relicUid));
+        data.getRelics().remove(relic);
     }
 
     private static final Set<String> MAIN_STATS = Set.of(

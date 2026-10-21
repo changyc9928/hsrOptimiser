@@ -9,6 +9,12 @@ import type {
   Relic,
   ScannedData,
   ScannedDataSize,
+  CharacterInput,
+  CharacterUpdateInput,
+  LightConeInput,
+  LightConeUpdateInput,
+  RelicInput,
+  RelicUpdateInput,
 } from './types.ts';
 
 export class ApiError extends Error {
@@ -135,7 +141,7 @@ export async function unequipRelics(config: BackendConfig, characterId: string):
   });
 }
 
-export async function addLightCone(config: BackendConfig, payload: Record<string, unknown>): Promise<LightCone> {
+export async function addLightCone(config: BackendConfig, payload: LightConeInput): Promise<LightCone> {
   return call<LightCone>(`${config.inventoryBase}/inventory/lightcones`, {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -143,7 +149,7 @@ export async function addLightCone(config: BackendConfig, payload: Record<string
   });
 }
 
-export async function addCharacter(config: BackendConfig, payload: Record<string, unknown>): Promise<HSRCharacter> {
+export async function addCharacter(config: BackendConfig, payload: CharacterInput): Promise<HSRCharacter> {
   return call<HSRCharacter>(`${config.inventoryBase}/inventory/characters`, {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -151,7 +157,7 @@ export async function addCharacter(config: BackendConfig, payload: Record<string
   });
 }
 
-export async function addRelic(config: BackendConfig, payload: Record<string, unknown>): Promise<Relic> {
+export async function addRelic(config: BackendConfig, payload: RelicInput): Promise<Relic> {
   return call<Relic>(`${config.inventoryBase}/inventory/relics`, {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -162,7 +168,7 @@ export async function addRelic(config: BackendConfig, payload: Record<string, un
 export async function updateCharacter(
   config: BackendConfig,
   characterId: string,
-  payload: Record<string, unknown>,
+  payload: CharacterUpdateInput,
 ): Promise<HSRCharacter> {
   return call<HSRCharacter>(`${config.inventoryBase}/inventory/characters/${characterId}`, {
     method: 'PUT',
@@ -174,7 +180,7 @@ export async function updateCharacter(
 export async function updateLightCone(
   config: BackendConfig,
   lightConeUid: string,
-  payload: Record<string, unknown>,
+  payload: LightConeUpdateInput,
 ): Promise<LightCone> {
   return call<LightCone>(`${config.inventoryBase}/inventory/lightcones/${lightConeUid}`, {
     method: 'PUT',
@@ -186,11 +192,32 @@ export async function updateLightCone(
 export async function updateRelic(
   config: BackendConfig,
   relicUid: string,
-  payload: Record<string, unknown>,
+  payload: RelicUpdateInput,
 ): Promise<Relic> {
   return call<Relic>(`${config.inventoryBase}/inventory/relics/${relicUid}`, {
     method: 'PUT',
     body: JSON.stringify(payload),
+    token: config.token,
+  });
+}
+
+export async function deleteCharacter(config: BackendConfig, characterId: string): Promise<boolean> {
+  return call<boolean>(`${config.inventoryBase}/inventory/characters/${characterId}`, {
+    method: 'DELETE',
+    token: config.token,
+  });
+}
+
+export async function deleteLightCone(config: BackendConfig, lightConeUid: string): Promise<boolean> {
+  return call<boolean>(`${config.inventoryBase}/inventory/lightcones/${lightConeUid}`, {
+    method: 'DELETE',
+    token: config.token,
+  });
+}
+
+export async function deleteRelic(config: BackendConfig, relicUid: string): Promise<boolean> {
+  return call<boolean>(`${config.inventoryBase}/inventory/relics/${relicUid}`, {
+    method: 'DELETE',
     token: config.token,
   });
 }

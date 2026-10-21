@@ -17,29 +17,17 @@ public final class RelicAvailabilityHelper {
     /**
      * A relic is available if it is unequipped, or equipped to a character that is in the allowed
      * set and not in the disallowed set.
+     *
+     * <p>
+     * Relic level is deliberately not part of this check. The damage simulator receives main stats
+     * by name and substats as totals, so a relic's enhancement is already reflected in its rolled
+     * substat values: level-0 relics simply carry fewer, smaller rolls. Filtering by level would
+     * replace that ranking with an arbitrary threshold.
      */
     public static boolean isAvailable(Relic relic, Set<String> allowed, Set<String> disallowed) {
         String location = relic.getLocation();
         return !StringUtils.hasText(location)
             || (allowed.contains(location) && !disallowed.contains(location));
-    }
-
-    /**
-     * A relic's substats are only trustworthy once it has been enhanced.
-     *
-     * <p>
-     * Scanners report unenhanced relics ({@code level == 0}) with the stats they can read plus a
-     * {@code preview_substats} guess of the rolls they might still receive. Treating those guesses
-     * as real values makes the optimizer equip relics it can never justify, so they are excluded
-     * from every mutation pool.
-     */
-    public static boolean hasKnownStats(Relic relic) {
-        return relic.getLevel() > 0;
-    }
-
-    /** Relics the optimizer is allowed to equip: available and with readable substats. */
-    public static boolean isOptimizable(Relic relic, Set<String> allowed, Set<String> disallowed) {
-        return hasKnownStats(relic) && isAvailable(relic, allowed, disallowed);
     }
 
     /**

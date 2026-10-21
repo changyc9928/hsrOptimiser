@@ -35,4 +35,10 @@ public interface LoadoutService {
     LightCone updateLightCone(String userId, String lightConeUid, UpdateLightConeRequest request);
 
     Relic updateRelic(String userId, String relicUid, UpdateRelicRequest request);
+
+    void deleteCharacter(String userId, String characterId);
+
+    void deleteLightCone(String userId, String lightConeUid);
+
+    void deleteRelic(String userId, String relicUid);
 }

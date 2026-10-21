@@ -137,3 +137,67 @@ export interface EvaluationResult {
   totalDamage: number;
   characterDamage: CharacterDamage[];
 }
+
+export interface RelicInput {
+  setId: string;
+  name?: string;
+  slot: RelicSlot;
+  rarity: number;
+  level: number;
+  mainstat: string;
+  substats: SubStat[];
+  location?: string;
+  lock?: boolean;
+  uid?: string;
+}
+
+export interface RelicUpdateInput {
+  name?: string;
+  level?: number;
+  mainstat?: string;
+  substats?: SubStat[];
+  lock?: boolean;
+  discard?: boolean;
+}
+
+export interface LightConeInput {
+  id: string;
+  name?: string;
+  level?: number;
+  ascension?: number;
+  superimposition?: number;
+  location?: string;
+  lock?: boolean;
+  uid?: string;
+}
+
+export interface LightConeUpdateInput {
+  id?: string;
+  name?: string;
+  level?: number;
+  ascension?: number;
+  superimposition?: number;
+  lock?: boolean;
+}
+
+export interface CharacterInput {
+  id: string;
+  name?: string;
+  path?: string;
+  level?: number;
+  ascension?: number;
+  eidolon?: number;
+  skills?: CharacterSkills;
+  traces?: CharacterTraces;
+  abilityVersion?: number;
+}
+
+export interface CharacterUpdateInput {
+  name?: string;
+  path?: string;
+  level?: number;
+  ascension?: number;
+  eidolon?: number;
+  skills?: CharacterSkills;
+  traces?: CharacterTraces;
+}

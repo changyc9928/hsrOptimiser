@@ -1,6 +1,6 @@
 export const STAR_RAIL_RES = 'https://raw.githubusercontent.com/Mar-7th/StarRailRes/master';
 
-interface CharacterMeta {
+export interface CharacterMeta {
   id: string;
   name: string;
   rarity: number;
@@ -11,7 +11,7 @@ interface CharacterMeta {
   portrait: string;
 }
 
-interface LightConeMeta {
+export interface LightConeMeta {
   id: string;
   name: string;
   rarity: number;
@@ -21,14 +21,14 @@ interface LightConeMeta {
   portrait: string;
 }
 
-interface RelicSetMeta {
+export interface RelicSetMeta {
   id: string;
   name: string;
   icon: string;
   desc: string[];
 }
 
-interface GameData {
+export interface GameData {
   characters: Record<string, CharacterMeta>;
   lightCones: Record<string, LightConeMeta>;
   relicSets: Record<string, RelicSetMeta>;
@@ -122,6 +122,30 @@ export function displayStat(key: string): string {
   const base = key.slice(0, -1);
   return PERCENT_STATS.has(base) ? `${base}%` : base;
 }
+
+export const RELIC_MAIN_STATS = [
+  'HP', 'ATK', 'DEF', 'SPD',
+  'CRIT Rate', 'CRIT DMG',
+  'Effect Hit Rate', 'Break Effect',
+  'Energy Regeneration Rate', 'Outgoing Healing Boost',
+  'Physical DMG Boost', 'Fire DMG Boost', 'Ice DMG Boost',
+  'Lightning DMG Boost', 'Wind DMG Boost',
+  'Quantum DMG Boost', 'Imaginary DMG Boost',
+];
+
+export const RELIC_SUBSTAT_KEYS = [
+  'ATK', 'HP', 'DEF', 'SPD',
+  'ATK_', 'HP_', 'DEF_',
+  'CRIT Rate_', 'CRIT DMG_',
+  'Effect RES_', 'Effect Hit Rate_', 'Break Effect_',
+];
+
+export const CHARACTER_PATHS = [
+  'Destruction', 'The Hunt', 'Erudition', 'Harmony', 'Nihility',
+  'Preservation', 'Abundance', 'Remembrance',
+];
+
+export const RELIC_SLOT_ORDER = ['Head', 'Hands', 'Body', 'Feet', 'LinkRope', 'PlanarSphere'] as const;
 
 export const RELIC_SLOT_LABEL: Record<string, string> = {
   Head: 'Head',

@@ -8,4 +8,6 @@ public interface TeamService {
     List<HSRCharacter> getTeam(String userId);
 
     List<HSRCharacter> saveTeam(String userId, List<String> characterIds);
+
+    List<HSRCharacter> removeMember(String userId, String characterId);
 }

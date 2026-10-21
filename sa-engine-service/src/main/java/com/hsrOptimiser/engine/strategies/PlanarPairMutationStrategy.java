@@ -64,7 +64,7 @@ public class PlanarPairMutationStrategy implements RelicMutationStrategy {
             if (r.getSlot() != Slot.PlanarSphere && r.getSlot() != Slot.LinkRope) {
                 continue;
             }
-            if (!RelicAvailabilityHelper.isOptimizable(r, allowed, disallowed)) {
+            if (!RelicAvailabilityHelper.isAvailable(r, allowed, disallowed)) {
                 continue;
             }
 

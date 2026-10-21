@@ -51,7 +51,7 @@ public class SingleRelicMutationStrategy implements RelicMutationStrategy {
 
         for (Relic r : relics) {
             boolean scrapable = r == sourceRelic
-                || RelicAvailabilityHelper.isOptimizable(r, allowed, disallowed);
+                || RelicAvailabilityHelper.isAvailable(r, allowed, disallowed);
 
             if (!scrapable) {
                 continue;

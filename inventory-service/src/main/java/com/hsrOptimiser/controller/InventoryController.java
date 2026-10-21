@@ -14,6 +14,7 @@ import com.hsrOptimiser.services.LoadoutService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -84,5 +85,32 @@ public class InventoryController {
         return ResponseEntity.ok(new ApiResponse<>(true,
             loadoutService.updateRelic(userId, uid, request),
             "Relic updated", HttpStatus.OK.value()));
+    }
+
+    @DeleteMapping("/characters/{id}")
+    public ResponseEntity<ApiResponse<Boolean>> deleteCharacter(
+        @RequestAttribute("userId") String userId,
+        @PathVariable String id) {
+        loadoutService.deleteCharacter(userId, id);
+        return ResponseEntity.ok(new ApiResponse<>(true, true,
+            "Character deleted", HttpStatus.OK.value()));
+    }
+
+    @DeleteMapping("/lightcones/{uid}")
+    public ResponseEntity<ApiResponse<Boolean>> deleteLightCone(
+        @RequestAttribute("userId") String userId,
+        @PathVariable String uid) {
+        loadoutService.deleteLightCone(userId, uid);
+        return ResponseEntity.ok(new ApiResponse<>(true, true,
+            "Light cone deleted", HttpStatus.OK.value()));
+    }
+
+    @DeleteMapping("/relics/{uid}")
+    public ResponseEntity<ApiResponse<Boolean>> deleteRelic(
+        @RequestAttribute("userId") String userId,
+        @PathVariable String uid) {
+        loadoutService.deleteRelic(userId, uid);
+        return ResponseEntity.ok(new ApiResponse<>(true, true,
+            "Relic deleted", HttpStatus.OK.value()));
     }
 }

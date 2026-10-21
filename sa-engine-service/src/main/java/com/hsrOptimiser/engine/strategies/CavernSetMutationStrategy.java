@@ -80,7 +80,7 @@ public class CavernSetMutationStrategy implements RelicMutationStrategy {
             if (relic.getRarity() != 5) {
                 continue;
             }
-            if (!RelicAvailabilityHelper.isOptimizable(relic, allowedSet, disallowedSet)) {
+            if (!RelicAvailabilityHelper.isAvailable(relic, allowedSet, disallowedSet)) {
                 continue;
             }
             availableBySlot
